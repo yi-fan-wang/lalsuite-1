@@ -87,6 +87,7 @@ int XLALSimInspiralWaveformParamsInsertNonGRAlphaPPE6(LALDict *params, REAL8 val
 int XLALSimInspiralWaveformParamsInsertNonGRBetaPPE6(LALDict *params, REAL8 value);
 int XLALSimInspiralWaveformParamsInsertNonGRAlphaPPE7(LALDict *params, REAL8 value);
 int XLALSimInspiralWaveformParamsInsertNonGRBetaPPE7(LALDict *params, REAL8 value);
+int XLALSimInspiralWaveformParamsInsertNonGRMassiveGravitonLambda(LALDict *params, REAL8 value);
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -173,6 +174,7 @@ REAL8 XLALSimInspiralWaveformParamsLookupNonGRAlphaPPE6(LALDict *params);
 REAL8 XLALSimInspiralWaveformParamsLookupNonGRBetaPPE6(LALDict *params);
 REAL8 XLALSimInspiralWaveformParamsLookupNonGRAlphaPPE7(LALDict *params);
 REAL8 XLALSimInspiralWaveformParamsLookupNonGRBetaPPE7(LALDict *params);
+REAL8 XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALDict *params);
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -259,6 +261,7 @@ int XLALSimInspiralWaveformParamsNonGRAlphaPPE6IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRBetaPPE6IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRAlphaPPE7IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRBetaPPE7IsDefault(LALDict *params);
+int XLALSimInspiralWaveformParamsNonGRMassiveGravitonLambdaIsDefault(LALDict *params);
 
 #if 0
 { /* so that editors will match succeeding brace */

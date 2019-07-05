@@ -133,6 +133,7 @@ DEFINE_INSERT_FUNC(NonGRAlphaPPE6, REAL8, "alphaPPE6", 0)
 DEFINE_INSERT_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_INSERT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_INSERT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
+DEFINE_INSERT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -233,6 +234,7 @@ DEFINE_LOOKUP_FUNC(NonGRAlphaPPE6, REAL8, "alphaPPE6", 0)
 DEFINE_LOOKUP_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_LOOKUP_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_LOOKUP_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
+DEFINE_LOOKUP_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -326,5 +328,6 @@ DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE6, REAL8, "alphaPPE6", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
+DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 
 #undef String

@@ -1739,27 +1739,26 @@ int XLALSimInspiralChooseFDWaveform(
             XLAL_ERROR(XLAL_EINVAL);
     }
 
+    if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);
+
+    // Add the massive gravtion's constribution
+    if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
+      if (XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams) != 0) 
+        ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, r, XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams));
+      if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
+    }
+
     //If polariz =0, then here is equivalent to the tgr_o2 branch, without doing anything.
     REAL8 polariz=longAscNodes;
     if (polariz) {
       COMPLEX16 tmpP,tmpC;
       for (UINT4 idx=0;idx<(*hptilde)->data->length;idx++) {
-	tmpP=(*hptilde)->data->data[idx];
-	tmpC=(*hctilde)->data->data[idx];
-	(*hptilde)->data->data[idx] =cos(2.*polariz)*tmpP+sin(2.*polariz)*tmpC;
-	(*hctilde)->data->data[idx]=cos(2.*polariz)*tmpC-sin(2.*polariz)*tmpP;
+    tmpP=(*hptilde)->data->data[idx];
+    tmpC=(*hctilde)->data->data[idx];
+    (*hptilde)->data->data[idx] =cos(2.*polariz)*tmpP+sin(2.*polariz)*tmpC;
+    (*hctilde)->data->data[idx]=cos(2.*polariz)*tmpC-sin(2.*polariz)*tmpP;
       }
     }
-
-    if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);
-
-    // Add the massive gravtion's constribution
-    if (nonGRparams!=NULL) {
-      if (XLALSimInspiralTestGRParamExists(nonGRparams, "loglambda_g")) ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, r, pow(10, XLALSimInspiralGetTestGRParam(nonGRparams, "loglambda_g")));
-      else if (XLALSimInspiralTestGRParamExists(nonGRparams, "lambda_g")) ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, r, XLALSimInspiralGetTestGRParam(nonGRparams, "lambda_g"));
-      if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
-    }
-
     return ret;
 }
 
