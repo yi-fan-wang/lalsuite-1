@@ -1744,7 +1744,7 @@ int XLALSimInspiralChooseFDWaveform(
     // Add the massive gravtion's constribution
     if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
       if (XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams) != 0) 
-        ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, r, XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams));
+        ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, distance, XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams));
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 

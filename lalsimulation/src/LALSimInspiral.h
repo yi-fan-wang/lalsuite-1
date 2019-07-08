@@ -493,6 +493,8 @@ int XLALSimInspiralTD(REAL8TimeSeries **hplus, REAL8TimeSeries **hcross, REAL8 m
 SphHarmTimeSeries * XLALSimInspiralTDModesFromPolarizations(REAL8 m1, REAL8 m2, REAL8 S1x, REAL8 S1y, REAL8 S1z, REAL8 S2x, REAL8 S2y, REAL8 S2z, REAL8 distance, REAL8 phiRef, REAL8 longAscNodes, REAL8 eccentricity, REAL8 meanPerAno, REAL8 deltaT, REAL8 f_min, REAL8 f_ref, LALDict *LALparams, Approximant approximant);
 int XLALSimInspiralFD(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde, REAL8 m1, REAL8 m2, REAL8 S1x, REAL8 S1y, REAL8 S1z, REAL8 S2x, REAL8 S2y, REAL8 S2z, REAL8 distance, REAL8 inclination, REAL8 phiRef, REAL8 longAscNodes, REAL8 eccentricity, REAL8 meanPerAno, REAL8 deltaF, REAL8 f_min, REAL8 f_max, REAL8 f_ref, LALDict *LALparams, Approximant approximant);
 int XLALSimInspiralChooseWaveform(REAL8TimeSeries **hplus, REAL8TimeSeries **hcross, const REAL8 m1, const REAL8 m2, const REAL8 s1x, const REAL8 s1y, const REAL8 s1z, const REAL8 s2x, const REAL8 s2y, const REAL8 s2z, const REAL8 inclination, const REAL8 phiRef, const REAL8 distance, const REAL8 longAscNodes, const REAL8 eccentricity, const REAL8 meanPerAno, const REAL8 deltaT, const REAL8 f_min, const REAL8 f_ref, LALDict *LALpars, const Approximant approximant);
+
+int XLALSimMassiveGravitonDispersionEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,  REAL8 m1, REAL8 m2, REAL8 r, REAL8 lambda_g);
 /* DEPRECATED */
 
 /* general waveform switching mode generation routines */
