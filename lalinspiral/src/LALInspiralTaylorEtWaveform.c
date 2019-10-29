@@ -24,6 +24,7 @@
  *
  */
 /*-------------------------------------------------------------------*/
+#include <math.h>
 #include <lal/LALInspiral.h>
 #include <lal/SeqFactories.h>
 #include <lal/FindRoot.h>
@@ -348,23 +349,6 @@ void XLALTaylorEtDerivatives7PN(
 	     + 129817.*LAL_PI/2304.) * zeta72);
 }
 
-
-void LALTaylorEtWaveform (
-   LALStatus        *status,
-   REAL4Vector      *signalvec,
-   InspiralTemplate *params
-   )
-{
-   XLAL_PRINT_DEPRECATION_WARNING("XLALTaylorEtWaveform");
-   INITSTATUS(status);
-   ATTATCHSTATUSPTR(status);
-
-   if( XLALTaylorEtWaveform(signalvec, params) )
-      ABORTXLAL(status);
-
-   DETATCHSTATUSPTR(status);
-   RETURN(status);
-}
 
 int XLALTaylorEtWaveform (
    REAL4Vector      *signalvec,

@@ -40,7 +40,6 @@
 
 #include <lalapps.h>
 #include <series.h>
-#include <processtable.h>
 #include <lalappsfrutils.h>
 
 #include <lal/LALConfig.h>
@@ -66,9 +65,6 @@
 #include <lal/Date.h>
 #include <lal/Units.h>
 #include <lal/FindChirp.h>
-#include <lal/FindChirpSP.h>
-#include <lal/FindChirpTD.h>
-#include <lal/FindChirpChisq.h>
 #include <lal/LALTrigScanCluster.h>
 #include <lal/PrintFTSeries.h>
 #include <lal/ReadFTSeries.h>
@@ -77,6 +73,7 @@
 #include <lal/TimeSeries.h>
 #include <lal/VectorOps.h>
 #include <lal/LALFrameL.h>
+#include <lal/SeqFactories.h>
 
 #include <LALAppsVCSInfo.h>
 
@@ -687,8 +684,7 @@ int main( int argc, char *argv[] )
          }  
       } 
 
-      LAL_CALL( LALCreateForwardRealFFTPlan( &status, &pfwd, chan->data->length, 0), &status);
-
+      pfwd = XLALCreateForwardREAL4FFTPlan( chan->data->length, 0 );
       fftData = XLALCreateCOMPLEX8FrequencySeries( chan->name, &chan->epoch, f0, deltaF, 
                                                    &lalDimensionlessUnit, (numPoints / 2 + 1) );
       if ( !fftData ){
@@ -696,9 +692,9 @@ int main( int argc, char *argv[] )
         exit(1);
       }
    
-      LAL_CALL( LALTimeFreqRealFFT( &status, fftData, chan, pfwd ), &status);
-   
-      LAL_CALL( LALDestroyRealFFTPlan( &status, &pfwd ), &status);
+      XLALREAL4TimeFreqFFT( fftData, chan, pfwd );
+
+      XLALDestroyREAL4FFTPlan( pfwd );
       pfwd = NULL;
 
        /* compute the SNR */

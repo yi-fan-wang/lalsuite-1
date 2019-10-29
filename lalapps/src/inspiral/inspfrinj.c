@@ -268,7 +268,6 @@
 
 #include <lalapps.h>
 #include <series.h>
-#include <processtable.h>
 #include <lalappsfrutils.h>
 
 #include <lal/LALConfig.h>
@@ -282,16 +281,17 @@
 #include <lal/LALFrStream.h>
 #include <lal/Calibration.h>
 #include <lal/LALFrameIO.h>
+#include <lal/FindChirp.h>
 #include <lal/FrameCalibration.h>
 #include <lal/LIGOMetadataTables.h>
 #include <lal/LIGOMetadataUtils.h>
+#include <lal/LIGOMetadataInspiralUtils.h>
 #include <lal/LIGOLwXMLlegacy.h>
 #include <lal/LIGOLwXMLInspiralRead.h>
 #include <lal/Date.h>
 #include <lal/Units.h>
-#include <lal/FindChirpSP.h>
-#include <lal/Inject.h>
 #include <lal/LALFrameL.h>
+#include <lal/TimeSeries.h>
 
 #include <LALAppsVCSInfo.h>
 
@@ -819,8 +819,8 @@ int main( int argc, char *argv[] )
             outFrame = fr_add_proc_REAL4TimeSeries( outFrame, &output, "ct", 
                 NULL );
           }
-          /* perform injections into this file's data only, preserve name*/
-          LAL_CALL( LALSSInjectTimeSeries( &status, &output, &inj ), &status );
+          /* add injections into this file's data */
+	  XLALAddREAL4TimeSeries( &output, &inj );
 
           if ( writeRawPlusInj )
           {

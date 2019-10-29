@@ -47,8 +47,12 @@ from pylab import *
 
 from scipy import stats
 from scipy import integrate
-from cPickle import dump, load
-from ConfigParser import SafeConfigParser
+try:
+    from configparser import ConfigParser
+    from pickle import dump, load
+except ImportError:  # python < 3
+    from cPickle import dump, load
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 #from sklearn.neighbors import KernelDensity
 #from scipy.stats import gaussian_kde
@@ -63,18 +67,18 @@ from ConfigParser import SafeConfigParser
 ###########################################
 
 
-plot_params = {'backend': 'png',
-		'axes.labelsize': 16, 
-		'axes.titlesize': 24, 
-		'text.fontsize': 14, 
-		'title.fontsize': 18, 
-		'legend.fontsize': 12, 
-		'xtick.labelsize': 14, 
-		'ytick.labelsize': 14, 
-		'axes.grid' : True,
-		'text.usetex': True,
-		'lines.markersize' : 5}
-          
+plot_params = {
+    'axes.labelsize': 16,
+    'axes.titlesize': 24,
+    'text.fontsize': 14,
+    'title.fontsize': 18,
+    'legend.fontsize': 12,
+    'xtick.labelsize': 14,
+    'ytick.labelsize': 14,
+    'axes.grid' : True,
+    'text.usetex': True,
+    'lines.markersize' : 5,
+}
 rcParams.update(plot_params)
 
 ###########################################
@@ -259,7 +263,7 @@ class GlobalParam(Parameter):
       #ax.plot(x, cp, color='k', label=str(i+1) + ' combined sources hist')
       ax.plot(x, ck, color='k', label=str(i+1) + ' combined sources kde')
       ax.fill_between(x, zeros(size(x)), ck, facecolor="k",alpha=0.3)
-      ax.hist(pp, linspace(self.min, self.max, 30), normed=True, color='blue', histtype='stepfilled', alpha=0.3, label='single source hist')
+      ax.hist(pp, linspace(self.min, self.max, 30), density=True, color='blue', histtype='stepfilled', alpha=0.3, label='single source hist')
       if eplot:
         ax.eventplot(pp[list(set(randint(0, len(pp), 100)))], colors=array([[1,0,0]]), linelengths = 0.01, lineoffsets=0.005)
       
@@ -650,7 +654,7 @@ def loadconfigfile(configfile):
 
 	# CONFIGURATION FILE: CHECKING FILE
 	if access(configfile, R_OK): 
-		config = SafeConfigParser()
+		config = ConfigParser()
 		config.read(configfile)
 	else:
 		exit("Configuration file: checking file - file does not exist. Abort script\n")

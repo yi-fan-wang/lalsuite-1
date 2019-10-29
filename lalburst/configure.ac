@@ -23,6 +23,7 @@ AC_CONFIG_FILES([ \
   src/version.c \
   swig/Makefile \
   test/Makefile \
+  test/python/Makefile \
 ])
 AM_INIT_AUTOMAKE([ \
   1.11 \
@@ -30,7 +31,7 @@ AM_INIT_AUTOMAKE([ \
   subdir-objects \
   color-tests \
   parallel-tests \
-  tar-ustar \
+  tar-pax \
   dist-xz \
   no-dist-gzip \
 ])
@@ -162,6 +163,25 @@ AC_SUBST([pkgincludedir], ["\${includedir}/lal"])
 # pure-python library code from being split across lib and lib64 on
 # RedHat-derived systems.
 AC_SUBST([pkgpythondir], ["\${pkgpyexecdir}"])
+
+# check whether we have the packages to pass the snglcoinc_verify.py tests
+# see https://git.ligo.org/lscsoft/lalsuite/issues/208
+AM_COND_IF(
+  [HAVE_PYTHON],[
+    AC_MSG_CHECKING(expected outcome of snglcoinc_verify.py)
+    AM_CONDITIONAL(
+      [SNGLCOINC_XPASS],
+      [${PYTHON} -c "import scipy; import ligo.lw; assert scipy.__version__ > '0.18.999'" 2> /dev/null],
+    )
+    AS_IF(
+      [test "x${SNGLCOINC_XPASS}" = xyes],
+      [AC_MSG_RESULT(pass)],
+      [AC_MSG_RESULT(fail)]
+    )
+  ],
+  [AM_CONDITIONAL([SNGLCOINC_XPASS], [false])]
+)
+
 
 # output
 AC_OUTPUT

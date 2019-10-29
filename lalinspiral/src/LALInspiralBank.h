@@ -862,15 +862,6 @@ XLALInspiralMoments(
     );
 
 void
-LALInspiralMomentsIntegrand
-(
-   LALStatus *status,
-   REAL8  *integrand,
-   REAL8  f,
-   void   *pars
-   );
-
-void
 LALInspiralSetSearchLimits (
     LALStatus            *status,
     InspiralBankParams   *bankParams,
@@ -915,29 +906,6 @@ LALInspiralUpdateParams (
     InspiralMetric     metric,
     REAL8              minimalMatch
     );
-
-void
-LALMatrixTransform (
-    LALStatus *status,
-    INT4      Dim,
-    REAL8     **trans,
-    REAL8     **buff1,
-    REAL8     **mm3
-    );
-
-void
-LALDeterminant3 (
-    LALStatus *status,
-    REAL8  *determinant,
-    REAL8  **matrix
-    );
-
-void
-LALInverse3(
-        LALStatus *status,
-        REAL8     **inverse,
-        REAL8     **matrix
-);
 
 void
 LALInspiralSetParams (
@@ -1083,12 +1051,6 @@ INT4 XLALInspiralComputePTFIntrinsicMetric (
     InspiralTemplate           *params
     );
 
-INT4 XLALInspiralComputePTFFullMetric (
-    InspiralMetric             *metric,
-    REAL8FrequencySeries       *psd,
-    InspiralTemplate           *params
-    );
-
 INT4 XLALInspiralComputePTFWaveform (
     REAL8Vector				   *ptfwave,
     InspiralTemplate           *params
@@ -1101,11 +1063,6 @@ INT4 XLALInspiralComputePTFWDeriv (
 	INT4					   paramid,
 	REAL8					   initdelta,
 	REAL8					   tolerance
-    );
-
-INT4 XLALInspiralComputePTFQDeriv (
-    REAL8VectorSequence		   *Qderiv,
-    InspiralTemplate           *params
     );
 
 /*@}*/

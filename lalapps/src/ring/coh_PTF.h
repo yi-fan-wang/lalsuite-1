@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <ctype.h>
 
+#include <lal/ComplexFFT.h>
 #include <lal/LALDatatypes.h>
 #include <lal/LALgetopt.h>
 #include <lal/LIGOMetadataTables.h>
@@ -34,6 +35,7 @@
 #include <lal/LALStdio.h>
 #include <lal/LIGOMetadataTables.h>
 #include <lal/LIGOMetadataUtils.h>
+#include <lal/LIGOMetadataInspiralUtils.h>
 #include <lal/LIGOMetadataRingdownUtils.h>
 #include <lal/AVFactories.h>
 #include <lal/SeqFactories.h>
@@ -41,10 +43,7 @@
 #include <lal/RealFFT.h>
 #include <lal/LALFrStream.h>
 #include <lal/LALInspiral.h>
-#include <lal/FindChirpDatatypes.h>
 #include <lal/FindChirp.h>
-#include <lal/FindChirpSP.h>
-#include <lal/FindChirpTD.h>
 #include <lal/FindChirpPTF.h>
 #include <lal/LIGOLwXML.h>
 #include <lal/LIGOLwXMLInspiralRead.h>
@@ -66,8 +65,9 @@
 #include "spectrm.h"
 #include "segment.h"
 #include "errutil.h"
-#include "processtable.h"
 #include "gpstime.h"
+#include "FindChirpTD.h"
+#include "FindChirpDatatypes.h"
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>

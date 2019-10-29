@@ -20,21 +20,15 @@
 #ifndef _LALINSPIRAL_H
 #define _LALINSPIRAL_H
 
-# include <math.h>
-# include <stdio.h>
-# include <stdlib.h>
-
-#include <gsl/gsl_errno.h>
 #include <gsl/gsl_odeiv.h>
-#include <lal/LALGSL.h>
 
-# include <lal/LALStdlib.h>
-# include <lal/LALConstants.h>
-# include <lal/SimulateCoherentGW.h>
-# include <lal/GeneratePPNInspiral.h>
-# include <lal/LIGOMetadataTables.h>
-# include <lal/LALDatatypes.h>
-# include <lal/LALSimInspiral.h>
+#include <lal/LALStdlib.h>
+#include <lal/LALConstants.h>
+#include <lal/SimulateCoherentGW.h>
+#include <lal/GeneratePPNInspiral.h>
+#include <lal/LIGOMetadataTables.h>
+#include <lal/LALDatatypes.h>
+#include <lal/LALSimInspiral.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -329,7 +323,7 @@ tagInspiralTemplate
   InputMasses massChoice;	/**< The pair of (mass) parameters given (see structure defining this member for more details) (input) */
   INT4Vector *segmentIdVec;	/**< %Vector of segment that have been filtered against this template needed for the LDAS implementation of the inspiral search */
   LIGOTimeGPS end_time;		/**< UNDOCUMENTED */
-  EventIDColumn *event_id;	/**< UNDOCUMENTED */
+  long event_id;		/**< UNDOCUMENTED */
   CHAR ifo[LIGOMETA_IFO_MAX];	/**< UNDOCUMENTED */
 
   REAL4  Gamma[10];		  /**< Gamma[] is a vector that stores the upper triangular part of the metric in
@@ -701,10 +695,6 @@ void LALInspiralParameterCalc (
 int XLALInspiralParameterCalc (
      InspiralTemplate *params);
 
-void LALInspiralRestrictedAmplitude(
-     LALStatus *status,
-     InspiralTemplate  *params);
-
 int XLALInspiralRestrictedAmplitude(
      InspiralTemplate  *params);
 
@@ -835,31 +825,14 @@ void LALInspiralWaveForInjection(
      InspiralTemplate *params,
      PPNParamStruc  *ppnParams);
 
-void LALInspiralWave1 (
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
 int  XLALInspiralWave1(
      REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALInspiralWave1Templates (
-     LALStatus *status,
-     REAL4Vector *signalvec1,
-     REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
 int  XLALInspiralWave1Templates(
      REAL4Vector *signalvec1,
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
-
-void LALInspiralWave1ForInjection (
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams);
 
 int  XLALInspiralWave1ForInjection(
      CoherentGW *waveform,
@@ -877,27 +850,8 @@ void LALInspiralEccentricityTemplates(
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
-void LALInspiralEccentricityForInjection(
-     LALStatus        *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams
-     );
-
-
-void LALInspiralWave2 (
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
 int  XLALInspiralWave2(
      REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALInspiralWave2Templates (
-     LALStatus *status,
-     REAL4Vector *signalvec1,
-     REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
 int  XLALInspiralWave2Templates (
@@ -905,17 +859,10 @@ int  XLALInspiralWave2Templates (
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
-void LALInspiralWave2ForInjection(
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams);
-
 int  XLALInspiralWave2ForInjection(
      CoherentGW *waveform,
      InspiralTemplate *params,
      PPNParamStruc  *ppnParams);
-
 
 void LALInspiralWave3 (
      LALStatus *status,
@@ -926,64 +873,28 @@ int  XLALInspiralWave3 (
      REAL4Vector *signalvec,
      InspiralTemplate *params);
 
-void LALInspiralWave3Templates (
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     REAL4Vector *signalvec2,
-     InspiralTemplate *params);
-
 int  XLALInspiralWave3Templates (
      REAL4Vector *signalvec1,
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
-
-void LALInspiralWave3ForInjection(
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams);
 
 int  XLALInspiralWave3ForInjection(
      CoherentGW *waveform,
      InspiralTemplate *params,
      PPNParamStruc  *ppnParams);
 
-
-
-
-void LALInspiralStationaryPhaseApprox1 (
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
 int
 XLALInspiralStationaryPhaseApprox1 (
    REAL4Vector      *signalvec,
    InspiralTemplate *params);
-
-void LALInspiralStationaryPhaseApprox2 (
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
 
 int
 XLALInspiralStationaryPhaseApprox2 (
    REAL4Vector      *signalvec,
    InspiralTemplate *params);
 
-void LALEOBWaveform(
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
 int XLALEOBWaveform(
      REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALEOBWaveformTemplates(
-     LALStatus *status,
-     REAL4Vector *signalvec1,
-     REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
 int XLALEOBWaveformTemplates(
@@ -991,42 +902,19 @@ int XLALEOBWaveformTemplates(
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
-void LALEOBWaveformForInjection(
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams);
-
 int XLALEOBWaveformForInjection(
      CoherentGW *waveform,
      InspiralTemplate *params,
      PPNParamStruc  *ppnParams);
 
-void LALEOBPPWaveform(
-     LALStatus *status,
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
 int XLALEOBPPWaveform(
      REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALEOBPPWaveformTemplates(
-     LALStatus *status,
-     REAL4Vector *signalvec1,
-     REAL4Vector *signalvec2,
      InspiralTemplate *params);
 
 int XLALEOBPPWaveformTemplates(
      REAL4Vector *signalvec1,
      REAL4Vector *signalvec2,
      InspiralTemplate *params);
-
-void LALEOBPPWaveformForInjection(
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams);
 
 int XLALEOBPPWaveformForInjection(
      CoherentGW *waveform,
@@ -1039,11 +927,6 @@ void LALBCVWaveform(
      InspiralTemplate *params);
 
 int XLALTaylorEtWaveform(
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALTaylorEtWaveform(
-     LALStatus *status,
      REAL4Vector *signalvec,
      InspiralTemplate *params);
 
@@ -1088,14 +971,6 @@ void LALInspiralSpinModulatedWave(
      LALStatus        *status,
      REAL4Vector      *signalvec,
      InspiralTemplate *in);
-
-
-void LALInspiralSpinModulatedWaveForInjection(
-     LALStatus *status,
-     CoherentGW *waveform,
-     InspiralTemplate *params,
-     PPNParamStruc  *ppnParams
-     );
 
 
 void
@@ -1174,17 +1049,7 @@ XLALSTPNFramelessWaveformForInjection (
 /* Phen-Spin waveform functions*/
 
 
-void LALSpinInspiralDerivatives(
-                         REAL8Vector *values,
-                         REAL8Vector *dvalues,
-                         void *mparams );
-
 int XLALPSpinInspiralRD(
-     REAL4Vector *signalvec,
-     InspiralTemplate *params);
-
-void LALPSpinInspiralRD(
-     LALStatus *status,
      REAL4Vector *signalvec,
      InspiralTemplate *params);
 
@@ -1194,29 +1059,11 @@ int XLALPSpinInspiralRDTemplates (
     InspiralTemplate *params
    );
 
-void LALPSpinInspiralRDTemplates (
-    LALStatus        *status,
-    REAL4Vector      *signalvec1,
-    REAL4Vector      *signalvec2,
-    InspiralTemplate *params
-   );
-
 int XLALPSpinInspiralRDFreqDom(
 				REAL4Vector * signalvec,
 				InspiralTemplate * params);
 
-void LALPSpinInspiralRDFreqDom (
-				LALStatus        *status,
-				REAL4Vector      *signalvec,
-				InspiralTemplate *params);
-
 int XLALPSpinInspiralRDForInjection(
-                           CoherentGW       *waveform,
-                           InspiralTemplate *params,
-                           PPNParamStruc  *ppnParams);
-
-void LALPSpinInspiralRDForInjection(
-                           LALStatus        *status,
                            CoherentGW       *waveform,
                            InspiralTemplate *params,
                            PPNParamStruc  *ppnParams);
@@ -1346,111 +1193,46 @@ void LALInspiralDerivatives (
      REAL8Vector *vec2,
      void *params);
 
-void LALInspiralVelocity (
-     LALStatus *status,
-     REAL8 *v,
-     TofVIn *params);
-
 REAL8 XLALInspiralVelocity (
       TofVIn *params);
-
-void LALInspiralPhasing1 (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     void *params);
 
 REAL8 XLALInspiralPhasing1 (
       REAL8 v,
       void *params);
 
-void LALInspiralPhiofVIntegrand (
-     LALStatus *status,
-     REAL8 *,
-     REAL8,
-     void *);
-
 REAL8 XLALInspiralPhiofVIntegrand (
       REAL8,
       void *);
-
-void LALInspiralPhasing2_0PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing2_0PN (
       REAL8 v,
       expnCoeffs *ak);
 
 #if 0 /* DO NOT EXIST */
-void LALInspiralPhasing2_1PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing2_1PN (
       REAL8 v,
       expnCoeffs *ak);
 #endif
 
-void LALInspiralPhasing2_2PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing2_2PN (
       REAL8 v,
       expnCoeffs *ak);
-
-void LALInspiralPhasing2_3PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing2_3PN (
       REAL8 v,
       expnCoeffs *ak);
 
-void LALInspiralPhasing2_4PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing2_4PN (
       REAL8 v,
       expnCoeffs *ak);
-
-void LALInspiralPhasing2_5PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing2_5PN (
       REAL8 v,
       expnCoeffs *ak);
 
-void LALInspiralPhasing2_6PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing2_6PN (
       REAL8 v,
       expnCoeffs *ak);
-
-void LALInspiralPhasing2_7PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 v,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing2_7PN (
       REAL8 v,
@@ -1459,197 +1241,83 @@ REAL8 XLALInspiralPhasing2_7PN (
 
 
 
-void LALInspiralPhasing3_0PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing3_0PN (
       REAL8 td,
       expnCoeffs *ak);
 
 #if 0 /* DO NOT EXIST */
-void LALInspiralPhasing3_1PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing3_1PN (
       REAL8 td,
       expnCoeffs *ak);
 #endif
 
-void LALInspiralPhasing3_2PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing3_2PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralPhasing3_3PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing3_3PN (
       REAL8 td,
       expnCoeffs *ak);
 
-void LALInspiralPhasing3_4PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing3_4PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralPhasing3_5PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing3_5PN (
       REAL8 td,
       expnCoeffs *ak);
 
-void LALInspiralPhasing3_6PN (
-     LALStatus *,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralPhasing3_6PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralPhasing3_7PN (
-     LALStatus *status,
-     REAL8 *phase,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralPhasing3_7PN (
       REAL8 td,
       expnCoeffs *ak);
 
 
-void LALInspiralTofV (
-     LALStatus *,
-     REAL8 *,
-     REAL8,
-     void *);
-
 REAL8 XLALInspiralTofV (
       REAL8,
       void *);
-
-void LALInspiralTofVIntegrand (
-     LALStatus *status,
-     REAL8 *,
-     REAL8,
-     void *);
 
 REAL8 XLALInspiralTofVIntegrand (
    REAL8      v,
    void      *params
    );
 
-void LALInspiralTiming2_0PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_0PN (
       REAL8 f,
       void *params);
 
 #if 0 /* DO NOT EXIST */
-void LALInspiralTiming2_1PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_1PN (
       REAL8 f,
       void *params);
 #endif
 
-void LALInspiralTiming2_2PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_2PN (
       REAL8 f,
       void *params);
-
-void LALInspiralTiming2_3PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
 
 REAL8 XLALInspiralTiming2_3PN (
       REAL8 f,
       void *params);
 
-void LALInspiralTiming2_4PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_4PN (
       REAL8 f,
       void *params);
-
-void LALInspiralTiming2_5PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
 
 REAL8 XLALInspiralTiming2_5PN (
       REAL8 f,
       void *params);
 
-void LALInspiralTiming2_6PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_6PN (
       REAL8 f,
       void *params);
 
-void LALInspiralTiming2_7PN (
-     LALStatus *,
-     REAL8 *toff,
-     REAL8 f,
-     void *params);
-
 REAL8 XLALInspiralTiming2_7PN (
       REAL8 f,
       void *params);
-
-void LALInspiralFrequency3_0PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralFrequency3_0PN (
       REAL8 td,
@@ -1667,61 +1335,25 @@ REAL8 XLALInspiralFrequency3_1PN (
       expnCoeffs *ak);
 #endif
 
-void LALInspiralFrequency3_2PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralFrequency3_2PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralFrequency3_3PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralFrequency3_3PN (
       REAL8 td,
       expnCoeffs *ak);
 
-void LALInspiralFrequency3_4PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralFrequency3_4PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralFrequency3_5PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralFrequency3_5PN (
       REAL8 td,
       expnCoeffs *ak);
 
-void LALInspiralFrequency3_6PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
-
 REAL8 XLALInspiralFrequency3_6PN (
       REAL8 td,
       expnCoeffs *ak);
-
-void LALInspiralFrequency3_7PN (
-     LALStatus *status,
-     REAL8 *frequency,
-     REAL8 td,
-     expnCoeffs *ak);
 
 REAL8 XLALInspiralFrequency3_7PN (
       REAL8 td,
@@ -1756,28 +1388,6 @@ XLALRungeKutta4(
 
 void XLALRungeKutta4Free(
      rk4GSLIntegrator *integrator);
-
-/* --- PARSING PROTOTYPE FOR INSPIRALTEMPLATE STRCUTURE --- */
-
-void
-LALInspiralITStructureParseParameters(
-	LALStatus *status,
-	UINT4 argc,
-	CHAR **argv,
-	InspiralTemplate *params);
-
-void
-LALInspiralITStructureSetDefault(
-	LALStatus *status,
-	InspiralTemplate *params);
-
-void
-LALInspiralITStructurePrint(
-	LALStatus *status,
-	InspiralTemplate  params);
-
-void
-LALInspiralITStructureHelp(void);
 
 /* --- TEST PROTOTYPES --- */
 
@@ -1975,11 +1585,6 @@ void XLALSimInjectNinjaSignals(
         const char *ifo,
         REAL8 dynRange,
         SimInspiralTable* events
-);
-
-/* Determines if a given time is playground data. */
-int XLALINT8NanoSecIsPlayground (
-        INT8 ns
 );
 
 /*---------------------------------------------------------------- */

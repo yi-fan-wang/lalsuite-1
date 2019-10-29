@@ -668,6 +668,90 @@ void PulsarFreeParams( PulsarParameters* pars ){
 }
 
 
+/* create a copy of the parameters */
+void PulsarCopyParams( PulsarParameters *origin, PulsarParameters *target ){
+  /* Check that the source and origin differ */
+  if( origin == target ) { return; }
+
+  if( !origin ) {
+    XLAL_ERROR_VOID(XLAL_EFAULT, "Unable to access origin pointer.");
+  }
+
+  /* Make sure the structure is initialised */
+  if( !target ) {
+    XLAL_ERROR_VOID(XLAL_EFAULT, "Unable to copy to uninitialised PulsarParameters structure.");
+  }
+
+  PulsarParam *this, *next = NULL;
+
+  this = origin->head;
+
+  if( this ) { next = this->next; }
+
+  /* first clear target variables */
+  PulsarClearParams( target );
+
+  while( this ){
+    if( this->type == PULSARTYPE_REAL8Vector_t ) {
+      const REAL8Vector *old = *(REAL8Vector **)this->value;
+      REAL8Vector *new = XLALCreateREAL8Vector(old->length);
+      if( new ){
+        memcpy(new->data, old->data, new->length*sizeof(REAL8));
+      }
+      else{
+        XLAL_ERROR_VOID(XLAL_ENOMEM,"Unable to copy vector!\n");
+      }
+
+      PulsarAddREAL8VectorParam(target, this->name, (const REAL8Vector*)new);
+
+      if ( this->err ) {
+        const REAL8Vector *olderr = *(REAL8Vector **)this->err;
+        REAL8Vector *newerr = XLALCreateREAL8Vector(olderr->length);
+        if( newerr ){
+          memcpy(newerr->data, olderr->data, newerr->length*sizeof(REAL8));
+        }
+        else{
+          XLAL_ERROR_VOID(XLAL_ENOMEM,"Unable to copy vector!\n");
+        }
+
+        const UINT4 *oldfit = PulsarGetParamFitFlag( origin, this->name );
+        UINT4 *newfit = (UINT4*)XLALCalloc( newerr->length, sizeof(UINT4) );
+
+        if( newfit ){
+          memcpy(newfit, oldfit, newerr->length*sizeof(UINT4));
+        }
+        else{
+          XLAL_ERROR_VOID(XLAL_ENOMEM,"Unable to copy vector!\n");
+        }
+
+        PulsarSetREAL8VectorParamErr(target, this->name, (const REAL8Vector *)newerr, (const UINT4 *)newfit);
+      }
+    }
+    else if ( this->type == PULSARTYPE_string_t ){
+      CHAR *parstr = XLALStringDuplicate(*(CHAR **)this->value);
+      PulsarAddStringParam(target, this->name, (const CHAR*)parstr);
+    }
+    else {
+      PulsarAddParam(target, this->name, this->value, this->type);
+
+      if ( ( this->type == PULSARTYPE_REAL8_t ) && this->err ){
+        REAL8 err = *(REAL8 *)this->err;
+
+        const UINT4 *oldfit = PulsarGetParamFitFlag( origin, this->name );
+        UINT4 newfit = oldfit[0];
+
+        PulsarSetREAL8ParamErr(target, this->name, err, newfit);
+      }
+    }
+
+    this = next;
+    if( this ) { next = this->next; }
+  }
+
+  return;
+}
+
+
 /* create functions for converting par file input e.g. from strings to floats, converting times, converting units */
 enum{
   CONVFLOAT = 0,
@@ -754,7 +838,7 @@ typedef struct tagParConversion{
 }ParConversion;
 
 
-#define NUM_PARS 108 /* number of allowed parameters */
+#define NUM_PARS 121 /* number of allowed parameters */
 
 /** Initialise conversion structure with most allowed TEMPO2 parameter names and conversion functions
  * (convert all read in parameters to SI units where necessary). See http://arxiv.org/abs/astro-ph/0603381 and
@@ -883,7 +967,7 @@ ParConversion pc[NUM_PARS] = {
   { .name = "I31", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t },
   { .name = "Q22", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* the l=m=2 mass quadrupole in kg m^2 */
 
-  /* GW non-GR polarisation mode amplitude parameters */
+  /* GW non-GR polarisation mode amplitude parameters (assuming emission at twice the rotation frequency) */
   { .name = "HPLUS", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor plus polarisation amplitude */
   { .name = "HCROSS", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor cross polarisation amplitude */
   { .name = "PSITENSOR", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor angle polarisation */
@@ -895,7 +979,22 @@ ParConversion pc[NUM_PARS] = {
   { .name = "HVECTORX", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector x-mode amplitude */
   { .name = "HVECTORY", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector y-mode amplitude */
   { .name = "PSIVECTOR", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector angle polarisation */
-  { .name = "PHI0VECTOR", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t } /* GW vector polarisation initial phase */
+  { .name = "PHI0VECTOR", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector polarisation initial phase */
+
+  /* GW non-GR polarisation mode amplitude parameters (assuming emission at the rotation frequency) */
+  { .name = "H0_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GR 21 polarisation amplitude */
+  { .name = "HPLUS_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor plus polarisation amplitude */
+  { .name = "HCROSS_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor cross polarisation amplitude */
+  { .name = "PSITENSOR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW tensor angle polarisation */
+  { .name = "PHI0TENSOR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* initial phase for tensor modes */
+  { .name = "HSCALARB_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW scalar breathing mode polarisation amplitude */
+  { .name = "HSCALARL_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW scalar longitudinal polarisation amplitude */
+  { .name = "PSISCALAR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW scalar angle polarisation */
+  { .name = "PHI0SCALAR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* initial phase for scalar modes */
+  { .name = "HVECTORX_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector x-mode amplitude */
+  { .name = "HVECTORY_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector y-mode amplitude */
+  { .name = "PSIVECTOR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t }, /* GW vector angle polarisation */
+  { .name = "PHI0VECTOR_F", .convfunc = ParConvToFloat, .converrfunc = ParConvToFloat, .ptype = PULSARTYPE_REAL8_t } /* GW vector polarisation initial phase */
 };
 
 

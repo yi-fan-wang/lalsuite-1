@@ -177,7 +177,7 @@ int XLALSimInspiralChooseTDWaveformFromCache(
 
     INT4 ampO=XLALSimInspiralWaveformParamsLookupPNAmplitudeOrder(LALpars);
     // case 1: Precessing waveforms
-    if( approximant == SpinTaylorT4 || approximant == SpinTaylorT2 ) {
+    if( approximant == SpinTaylorT4 || approximant == SpinTaylorT5 ) {
         // If polarizations are not cached we must generate a fresh waveform
         // FIXME: Will need to check hlms and/or dynamical variables as well
         if( cache->hplus == NULL || cache->hcross == NULL) {
@@ -605,7 +605,7 @@ int XLALSimInspiralChooseFDWaveformFromCache(
 						 S1x, S1y, S1z, S2x, S2y, S2z,
 						 r, i, phiRef, 0., 0., 0.,
 						 deltaF, f_min, f_max, f_ref,
-						 NULL, approximant);
+						 LALpars, approximant);
         }
     }
 
@@ -1066,7 +1066,7 @@ int XLALSimInspiralChooseFDWaveformSequence(
             ret = XLALSimIMRSEOBNRv4TSurrogateFrequencySequence(hptilde, hctilde, frequencies,
                     phiRef, f_ref, distance, inclination,
                     m1, m2, S1z, S2z, lambda1, lambda2,
-                    SEOBNRv4TSurrogate_LINEAR);
+                    SEOBNRv4TSurrogate_CUBIC);
             break;
 
         case Lackey_Tidal_2013_SEOBNRv2_ROM:

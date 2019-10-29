@@ -28,6 +28,7 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_roots.h>
 #include <lal/LALSimBurst.h>
+#include <lal/XLALGSL.h>
 
 #include "logaddexp.h"
 
@@ -611,13 +612,13 @@ REAL8 LALInferenceInspiralPrior(LALInferenceRunState *runState, LALInferenceVari
   {
     REAL8 z=0.0;
     /* Double-check for tilts to prevent accidental double-prior */
-    if(LALInferenceCheckVariable(params,"a_spin1") && ~LALInferenceCheckVariable(params,"tilt_spin1"))
+    if(LALInferenceCheckVariable(params,"a_spin1") && !LALInferenceCheckVariable(params,"tilt_spin1"))
     {
       REAL8 R = REAL8max(fabs(LALInferenceGetREAL8Variable(priorParams,"a_spin1_max")),fabs(LALInferenceGetREAL8Variable(priorParams,"a_spin1_min")));
       z=LALInferenceGetREAL8Variable(params,"a_spin1");
       logPrior += -log(2.0) - log(R) + log(-log(fabs(z) / R));
     }
-    if(LALInferenceCheckVariable(params,"a_spin2")&& ~LALInferenceCheckVariable(params,"tilt_spin2"))
+    if(LALInferenceCheckVariable(params,"a_spin2")&& !LALInferenceCheckVariable(params,"tilt_spin2"))
     {
       REAL8 R = REAL8max(fabs(LALInferenceGetREAL8Variable(priorParams,"a_spin2_max")),fabs(LALInferenceGetREAL8Variable(priorParams,"a_spin2_min")));
       z=LALInferenceGetREAL8Variable(params,"a_spin2");
@@ -1161,20 +1162,6 @@ void LALInferenceCyclicReflectiveBound(LALInferenceVariables *parameter,
 }
 
 
-/**
- * \brief Rotate initial phase if polarisation angle is cyclic around ranges
- * If the polarisation angle parameter \f$\psi\f$ is cyclic about its upper and
- * lower ranges of \f$-\pi/4\f$ to \f$\pi/4\f$ then the transformation for
- * crossing a boundary requires the initial phase parameter \f$\phi_0\f$ to be
- * rotated through \f$\pi\f$ radians. The function assumes the value of
- * \f$\psi\f$ has been rescaled to be between 0 and \f$2\pi\f$ - this is a
- * requirement of the covariance matrix routine \c LALInferenceNScalcCVM
- * function.
- *
- * This is particularly relevant for pulsar analyses.
- *
- * \param parameter [in] Pointer to an array of parameters
- */
 void LALInferenceRotateInitialPhase( LALInferenceVariables *parameter){
 
   if (parameter == NULL)

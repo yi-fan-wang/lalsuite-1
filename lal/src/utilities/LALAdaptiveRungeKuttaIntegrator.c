@@ -402,15 +402,16 @@ int XLALAdaptiveRungeKutta4Hermite(LALAdaptiveRungeKuttaIntegrator * integrator,
 }
 
 int XLALAdaptiveRungeKutta4NoInterpolate(LALAdaptiveRungeKuttaIntegrator * integrator,
-         void * params, REAL8 * yinit, REAL8 tinit, REAL8 tend, REAL8 deltat_or_h0,
+         void * params, REAL8 * yinit, REAL8 tinit, REAL8 tend, REAL8 deltat_or_h0, REAL8 min_deltat_or_h0,
 					 REAL8Array ** t_and_y_out, INT4 EOBversion)
 {
+
     int errnum = 0;
     int status; /* used throughout */
 
     /* needed for the integration */
     size_t dim, outputlength=0, bufferlength, retries;
-    REAL8 t, tnew, h0;
+    REAL8 t, tnew, h0, h0old;
     REAL8Array *buffers = NULL;
     REAL8 *temp = NULL, *y, *y0, *dydt_in, *dydt_in0, *dydt_out, *yerr; /* aliases */
 
@@ -452,6 +453,7 @@ int XLALAdaptiveRungeKutta4NoInterpolate(LALAdaptiveRungeKuttaIntegrator * integ
 
     t = tinit;
     h0 = deltat_or_h0;
+    h0old = h0; /* initialized so that it will not trigger the check h0<h0old at the first step */
     memcpy(y, yinit, dim * sizeof(REAL8));
 
     /* store the first data point */
@@ -522,17 +524,26 @@ int XLALAdaptiveRungeKutta4NoInterpolate(LALAdaptiveRungeKuttaIntegrator * integ
         /* call the GSL error-checking function */
         status = gsl_odeiv_control_hadjust(integrator->control, integrator->step, y, yerr, dydt_out, &h0);
 
+        /* Enforce a minimal allowed time step */
+        /* To ignore this type of constraint, set min_deltat_or_h0 = 0 */
+        if (h0 < min_deltat_or_h0) h0 = min_deltat_or_h0;
+
         /* did the error-checker reduce the stepsize?
-         * note: other possible return codes are GSL_ODEIV_HADJ_INC if it was increased,
-         * GSL_ODEIV_HADJ_NIL if it was unchanged */
-        if (status == GSL_ODEIV_HADJ_DEC) {
+         * note: previously, was using status == GSL_ODEIV_HADJ_DEC
+         * other possible return codes are GSL_ODEIV_HADJ_INC if it was increased,
+         * GSL_ODEIV_HADJ_NIL if it was unchanged
+         * since we introduced a minimal step size we simply compare to the saved value of h0 */
+        /* if (status == GSL_ODEIV_HADJ_DEC) { */
+        if (h0 < h0old) {
+            h0old = h0;
             memcpy(y, y0, dim * sizeof(REAL8)); /* if so, undo the step, and try again */
             memcpy(dydt_in, dydt_in0, dim * sizeof(REAL8));
             goto try_step;
         }
 
-        /* update the current time and input derivatives */
+        /* update the current time and input derivatives, save the time step */
         t = tnew;
+        h0old = h0;
         memcpy(dydt_in, dydt_out, dim * sizeof(REAL8));
         outputlength++;
 
@@ -765,7 +776,7 @@ int XLALAdaptiveRungeKuttaDenseandSparseOutput(LALAdaptiveRungeKuttaIntegrator *
           while (interp_t < tnew) {
             dense_buffers->data[dense_outputlength] = interp_t;
             dense_outputlength++;
-            interp_t += deltat;
+            interp_t = tinit + dense_outputlength*deltat;
           }
           interp_t = interp_t_old;
           dense_outputlength = dense_outputlength_old;
@@ -786,7 +797,7 @@ int XLALAdaptiveRungeKuttaDenseandSparseOutput(LALAdaptiveRungeKuttaIntegrator *
 	      dense_buffers->data[(i+1)*dense_bufferlength + dense_outputlength] =
                 (1.0 - theta)*y0i + theta*yi + theta*(theta-1.0)*( (1.0 - 2.0*theta)*(yi - y0i) + h*( (theta-1.0)*dydt_in[i] + theta*dydt_out[i]));
 	      dense_outputlength++;
-	      interp_t += deltat;
+	      interp_t = tinit + dense_outputlength*deltat;
 	    }
 
 	    if(i<(dim-1)){
@@ -824,12 +835,6 @@ int XLALAdaptiveRungeKuttaDenseandSparseOutput(LALAdaptiveRungeKuttaIntegrator *
         for (UINT4 i = 1; i <= dim; i++)
             sparse_buffers->data[i * sparse_bufferlength + sparse_outputlength] = y[i - 1];
     }
-
-    /* Copy the final state into yinit and dense_output. */
-    memcpy(yinit, y, dim * sizeof(REAL8));
-    dense_buffers->data[dense_outputlength] = t;
-    for (UINT4 i = 1; i <= dim; i++)
-      dense_buffers->data[i * dense_bufferlength + dense_outputlength] = y[i - 1];
 
     if (sparse_outputlength == 0 || dense_outputlength == 1)
         goto bail_out;

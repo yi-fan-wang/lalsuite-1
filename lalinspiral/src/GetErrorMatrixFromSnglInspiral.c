@@ -25,6 +25,8 @@
  *
  *---------------------------------------------------------------------------*/
 
+#include <math.h>
+#include <lal/LALConstants.h>
 #include <lal/LALStdlib.h>
 #include <lal/LALError.h>
 #include <lal/LALGSL.h>

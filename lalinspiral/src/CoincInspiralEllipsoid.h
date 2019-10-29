@@ -49,44 +49,13 @@ extern "C" {
  */
 /*@{*/
 
-#include    <math.h>
-#include    <lal/LALStdlib.h>
-#include    <lal/LALGSL.h>
-#include    <lal/LALError.h>
+#include    <lal/LALAtomicDatatypes.h>
 #include    <lal/LIGOMetadataTables.h>
-#include    <lal/LIGOMetadataInspiralUtils.h>
-#include    <lal/EllipsoidOverlapTools.h>
 
-#include    <gsl/gsl_errno.h>
-#include    <gsl/gsl_math.h>
-#include    <gsl/gsl_min.h>
+
 #include    <gsl/gsl_vector.h>
 #include    <gsl/gsl_matrix.h>
-#include    <gsl/gsl_blas.h>
-#include    <gsl/gsl_linalg.h>
 
-/**
- * The \c TriggerErrorList is a linked list used within e-thinca. It
- * contains pointers to the \c SnglInspiralTable for a given trigger,
- * and its associated error matrix and position vector.
- */
-typedef struct tagTriggerErrorList
-{
-  SnglInspiralTable          *trigger;
-  gsl_matrix                 *err_matrix;
-  gsl_vector                 *position;
-  struct tagTriggerErrorList *next;
-}
-TriggerErrorList;
-
-
-/* Functions for checking for coincidence between inspiral events */
-INT2 XLALCompareInspiralsEllipsoid(
-      TriggerErrorList              *aPtr,
-      TriggerErrorList              *bPtr,
-      fContactWorkSpace             *workSpace,
-      InspiralAccuracyList          *params
-      );
 
 /* Functions for generating the error matrix and position vectors for triggers */
 gsl_matrix * XLALGetErrorMatrixFromSnglInspiral(
@@ -104,18 +73,6 @@ gsl_vector * XLALGetPositionFromSnglInspiral( SnglInspiralTable *table );
 int XLALSetTimeInPositionVector( gsl_vector *position,
                                  REAL8       timeShift
                                );
-
-/* Function for calculating the e-thinca parameter between coincident events */
-REAL8 XLALCalculateEThincaParameter(
-          SnglInspiralTable *table1,
-          SnglInspiralTable *table2,
-          InspiralAccuracyList* accuracyParams
-);
-
-REAL8 XLALEThincaParameterForInjection(
-                    SimInspiralTable  *injection,
-                    SnglInspiralTable *trigger
-                    );
 
 /*@}*/ /* end:CoincInspiralEllipsoid_h */
 

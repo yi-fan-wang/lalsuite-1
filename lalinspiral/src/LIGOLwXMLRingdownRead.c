@@ -1,5 +1,5 @@
 /*
-*  Copyright (C) 2007 Duncan Brown, Jolien Creighton, Lisa M. Goggin
+*  Copyright (C) 2007 Duncan Brown, Jolien Creighton, Lisa M. Goggin, Alexander Dietz, Kipp Cannon, Patrick Brady, Robert Adam Mercer, Stephen Fairhurst, Thomas Cokelaer
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -31,13 +31,14 @@
 #include <string.h>
 #include <metaio.h>
 
-#include "CreateMetaTableDir.h"
 #include <lal/LALStdio.h>
 #include <lal/LALStdlib.h>
 #include <lal/LALConstants.h>
 #include <lal/LIGOMetadataTables.h>
+#include <lal/LIGOLwXMLRead.h>
 #include <lal/LIGOLwXMLRingdownRead.h>
 #include <lal/StringInput.h>
+#include <lal/XLALError.h>
 
 #ifdef __GNUC__
 #define UNUSED __attribute__ ((unused))
@@ -71,6 +72,139 @@
  * ### Notes ###
  *
  */
+
+
+typedef struct
+tagMetaTableDirectory
+{
+  const CHAR *name;
+  INT4   pos;
+  INT4   idx;
+}
+MetaTableDirectory;
+
+
+static
+MetaTableDirectory* XLALCreateMetaTableDir(
+    struct MetaioParseEnvironment *const env,
+    MetadataTableType       table
+    )
+
+{
+  MetaTableDirectory  *tableDir;
+  INT4 i;
+
+  switch( table )
+  {
+    case no_table:
+      XLALPrintError( "XLALError - unable to index type no_table\n" );
+      XLAL_ERROR_NULL( XLAL_EINVAL );
+      break;
+    case sngl_ringdown_table:
+      {
+        MetaTableDirectory tmpTableDir[] =
+        {
+          {"ifo",                     -1, 0},
+          {"channel",                 -1, 1},
+          {"start_time",              -1, 2},
+          {"start_time_ns",           -1, 3},
+          {"start_time_gmst",         -1, 4},
+          {"frequency",               -1, 5},
+          {"quality",                 -1, 6},
+          {"phase",                   -1, 7},
+          {"mass",                    -1, 8},
+          {"spin",                    -1, 9},
+          {"epsilon",                 -1, 10},
+          {"num_clust_trigs",         -1, 11},
+          {"ds2_H1H2",                -1, 12},
+          {"ds2_H1L1",                -1, 13},
+          {"ds2_H1V1",                -1, 14},
+          {"ds2_H2L1",                -1, 15},
+          {"ds2_H2V1",                -1, 16},
+          {"ds2_L1V1",                -1, 17},
+          {"amplitude",               -1, 18},
+          {"snr",                     -1, 19},
+          {"eff_dist",                -1, 20},
+          {"sigma_sq",                -1, 21},
+          {"event_id",                -1, 22},
+          {NULL,                       0, 0}
+        };
+        for ( i=0 ; tmpTableDir[i].name; ++i )
+        {
+          if ( (tmpTableDir[i].pos =
+                MetaioFindColumn( env, tmpTableDir[i].name )) < 0 )
+          {
+            XLALPrintError( "XLALError - unable to find column %s\n",
+                tmpTableDir[i].name );
+            XLAL_ERROR_NULL( XLAL_EFAILED );
+          }
+        }
+
+        tableDir = (MetaTableDirectory *) LALMalloc( (i+1) *
+            sizeof(MetaTableDirectory)) ;
+        memcpy(tableDir, tmpTableDir, (i+1)*sizeof(MetaTableDirectory) );
+      }
+      break;
+    case sim_ringdown_table:
+      {
+        MetaTableDirectory tmpTableDir[] =
+        {
+          {"waveform",                     -1, 0},
+          {"coordinates",                  -1, 1},
+          {"geocent_start_time",           -1, 2},
+          {"geocent_start_time_ns",        -1, 3},
+          {"h_start_time",                 -1, 4},
+          {"h_start_time_ns",              -1, 5},
+          {"l_start_time",                 -1, 6},
+          {"l_start_time_ns",              -1, 7},
+          {"v_start_time",                 -1, 8},
+          {"v_start_time_ns",              -1, 9},
+          {"start_time_gmst",              -1, 10},
+          {"longitude",                    -1, 11},
+          {"latitude",                     -1, 12},
+          {"distance",                     -1, 13},
+          {"inclination",                  -1, 14},
+          {"polarization",                 -1, 15},
+          {"frequency",                    -1, 16},
+          {"quality",                      -1, 17},
+          {"phase",                        -1, 18},
+          {"mass",                         -1, 19},
+          {"spin",                         -1, 20},
+          {"epsilon",                      -1, 21},
+          {"amplitude",                    -1, 22},
+          {"eff_dist_h",                   -1, 23},
+          {"eff_dist_l",                   -1, 24},
+          {"eff_dist_v",                   -1, 25},
+          {"hrss",                         -1, 26},
+          {"hrss_h",                       -1, 27},
+          {"hrss_l",                       -1, 28},
+          {"hrss_v",                       -1, 29},
+          {NULL,                            0, 0}
+        };
+        for ( i=0 ; tmpTableDir[i].name; ++i )
+        {
+          if ( (tmpTableDir[i].pos =
+                MetaioFindColumn( env, tmpTableDir[i].name )) < 0 )
+          {
+            XLALPrintError( "XLALError - unable to find column %s\n",
+                tmpTableDir[i].name );
+            XLAL_ERROR_NULL( XLAL_EFAILED );
+          }
+        }
+
+        tableDir = (MetaTableDirectory *) LALMalloc( (i+1) *
+            sizeof(MetaTableDirectory)) ;
+        memcpy(tableDir, tmpTableDir, (i+1)*sizeof(MetaTableDirectory) );
+      }
+      break;
+    default:
+      XLALPrintError( "XLALError - "
+          "unable to index table due to unknown table type error\n" );
+      XLAL_ERROR_NULL( XLAL_EFAILED );
+  }
+
+  return tableDir;
+}
 
 
 #define XLAL_CLOBBER_EVENTS \
@@ -253,10 +387,7 @@ SnglRingdownTable* XLALSnglRingdownTableFromLIGOLw (
       }
       else if ( tableDir[j].idx == 22 )
       {
-        thisEvent->event_id = (EventIDColumn *)
-          LALCalloc( 1, sizeof(EventIDColumn) );
-        sscanf( env->ligo_lw.table.elt[tableDir[j].pos].data.lstring.data, "sngl_ringdown:event_id:%" LAL_UINT8_FORMAT, &(thisEvent->event_id->id) );
-        thisEvent->event_id->snglRingdownTable = thisEvent;
+        sscanf( env->ligo_lw.table.elt[tableDir[j].pos].data.lstring.data, "sngl_ringdown:event_id:%ld", &(thisEvent->event_id) );
       }
       else
       {
@@ -526,110 +657,3 @@ SimRingdownTable* XLALSimRingdownTableFromLIGOLw (
 }
 
 #undef XLAL_CLOBBER_EVENTS
-
-
-INT4 XLALReadRingdownTriggerFile (
-    SnglRingdownTable    **ringdownEventList,
-    SnglRingdownTable    **lastTrigger,
-    SearchSummaryTable   **searchSummList,
-    SearchSummvarsTable  **inputFileList,
-    CHAR                  *fileName
-    )
-
-{
-  INT4                 numFileTriggers = 0;
-  int 		       errnum;
-  SnglRingdownTable   *inputData = NULL;
-  SearchSummaryTable  *inputSummary = NULL;
-  SearchSummaryTable  *thisSearchSumm = NULL;
-  SearchSummvarsTable *thisInputFile = NULL;
-
-  /* store the file name in search summvars */
-  XLALPrintInfo(
-      "XLALReadRingdownTriggerFile(): storing input file name %s\n"
-      "in search summvars table\n", fileName );
-
-  if ( ! *inputFileList )
-  {
-    *inputFileList = thisInputFile = (SearchSummvarsTable *)
-      LALCalloc( 1, sizeof(SearchSummvarsTable) );
-  }
-  else
-  {
-    for ( thisInputFile = *inputFileList; thisInputFile->next;
-        thisInputFile = thisInputFile->next );
-    thisInputFile = thisInputFile->next = (SearchSummvarsTable *)
-      LALCalloc( 1, sizeof(SearchSummvarsTable) );
-  }
-  if ( ! thisInputFile )
-  {
-    XLALPrintError( "XLAL Error - could not allocate search_summvars table\n" );
-    XLAL_ERROR( XLAL_ENOMEM );
-  }
-
-  snprintf( thisInputFile->name, LIGOMETA_NAME_MAX, "input_file" );
-  snprintf( thisInputFile->string, LIGOMETA_NAME_MAX, "%s", fileName );
-
-  /* read in the search summary and store */
-  XLALPrintInfo( "XLALReadRingdownTriggerFile(): "
-      "Reading search_summary table\n");
-
-  inputSummary = XLALSearchSummaryTableFromLIGOLw( fileName );
-  if ( ! inputSummary )
-  {
-    LALFree( thisInputFile );
-    XLALPrintError( "XLAL Error - error reading search_summary table from %s\n",
-        fileName );
-    XLAL_ERROR( XLAL_EIO );
-  }
-  else
-  {
-    /* store the search summary table in searchSummList list */
-    if ( ! *searchSummList )
-    {
-      *searchSummList = thisSearchSumm = inputSummary;
-    }
-    else
-    {
-      for ( thisSearchSumm = *searchSummList; thisSearchSumm->next;
-          thisSearchSumm = thisSearchSumm->next);
-      thisSearchSumm = thisSearchSumm->next = inputSummary;
-    }
-  }
-
-  /* read in the triggers */
-  XLAL_TRY( inputData = XLALSnglRingdownTableFromLIGOLw( fileName ), errnum);
-  if ( ! inputData )
-    switch ( errnum )
-    {
-      case XLAL_EDATA:
-        XLALPrintError("Unable to read sngl_ringdown table from %s\n", fileName );
-        /*LALFree(thisInputFile);*/
-        XLALClearErrno();
-        break;
-      default:
-        XLALSetErrno( errnum );
-        XLAL_ERROR( XLAL_EFUNC );
-  }
-  else
-  {
-    /* store the triggers */
-    if ( ! *ringdownEventList )
-    {
-      /* store the head of the linked list */
-      *ringdownEventList = *lastTrigger = inputData;
-    }
-    else
-    {
-      /* append to the end of the linked list and set current    */
-      /* trigger to the first trigger of the list being appended */
-      *lastTrigger = (*lastTrigger)->next = inputData;
-    }
-
-    /* scroll to the end of the linked list of triggers */
-    for ( ; (*lastTrigger)->next; *lastTrigger = (*lastTrigger)->next )
-      numFileTriggers++;
-  }
-
-  return numFileTriggers;
-}

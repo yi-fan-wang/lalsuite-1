@@ -1,5 +1,6 @@
 #include <lal/LALStdio.h>
 #include <lal/LALDict.h>
+#include <lal/LALSimInspiral.h>
 #include <lal/LALSimInspiralWaveformParams.h>
 
 #if 1 /* generate definitions for source */
@@ -81,7 +82,8 @@ DEFINE_INSERT_FUNC(TidalOctupolarFMode2, REAL8, "TidalOctupolarFMode2", 0)
 DEFINE_INSERT_FUNC(dQuadMon1, REAL8, "dQuadMon1", 0)
 DEFINE_INSERT_FUNC(dQuadMon2, REAL8, "dQuadMon2", 0)
 DEFINE_INSERT_FUNC(Redshift, REAL8, "redshift", 0)
-DEFINE_INSERT_FUNC(EccentricityFreq, REAL8, "f_ecc", -1.0)
+DEFINE_INSERT_FUNC(EccentricityFreq, REAL8, "f_ecc", LAL_DEFAULT_F_ECC)
+DEFINE_INSERT_FUNC(Lscorr, INT4, "lscorr", 0)
 
 DEFINE_INSERT_FUNC(NonGRPhi1, REAL8, "phi1", 0)
 DEFINE_INSERT_FUNC(NonGRPhi2, REAL8, "phi2", 0)
@@ -144,6 +146,9 @@ DEFINE_INSERT_FUNC(NLTidesA2, REAL8, "nlTidesA2", 0)
 DEFINE_INSERT_FUNC(NLTidesN2, REAL8, "nlTidesN2", 0)
 DEFINE_INSERT_FUNC(NLTidesF2, REAL8, "nlTidesF2", 0)
 
+/* SEOBNRv4P */
+DEFINE_INSERT_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
+
 /* LOOKUP FUNCTIONS */
 
 DEFINE_LOOKUP_FUNC(ModesChoice, INT4, "modes", LAL_SIM_INSPIRAL_MODES_CHOICE_ALL)
@@ -182,7 +187,8 @@ DEFINE_LOOKUP_FUNC(TidalOctupolarFMode2, REAL8, "TidalOctupolarFMode2", 0)
 DEFINE_LOOKUP_FUNC(dQuadMon1, REAL8, "dQuadMon1", 0)
 DEFINE_LOOKUP_FUNC(dQuadMon2, REAL8, "dQuadMon2", 0)
 DEFINE_LOOKUP_FUNC(Redshift, REAL8, "redshift", 0)
-DEFINE_LOOKUP_FUNC(EccentricityFreq, REAL8, "f_ecc", -1.0)
+DEFINE_LOOKUP_FUNC(EccentricityFreq, REAL8, "f_ecc", LAL_DEFAULT_F_ECC)
+DEFINE_LOOKUP_FUNC(Lscorr, INT4, "lscorr", 0)
 
 DEFINE_LOOKUP_FUNC(NonGRPhi1, REAL8, "phi1", 0)
 DEFINE_LOOKUP_FUNC(NonGRPhi2, REAL8, "phi2", 0)
@@ -244,6 +250,8 @@ DEFINE_LOOKUP_FUNC(NLTidesF1, REAL8, "nlTidesF1", 0)
 DEFINE_LOOKUP_FUNC(NLTidesA2, REAL8, "nlTidesA2", 0)
 DEFINE_LOOKUP_FUNC(NLTidesN2, REAL8, "nlTidesN2", 0)
 DEFINE_LOOKUP_FUNC(NLTidesF2, REAL8, "nlTidesF2", 0)
+/* SEOBNRv4P */
+DEFINE_LOOKUP_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
 
 /* ISDEFAULT FUNCTIONS */
 
@@ -276,7 +284,7 @@ DEFINE_ISDEFAULT_FUNC(TidalOctupolarFMode2, REAL8, "TidalOctupolarFMode2", 0)
 DEFINE_ISDEFAULT_FUNC(dQuadMon1, REAL8, "dQuadMon1", 0)
 DEFINE_ISDEFAULT_FUNC(dQuadMon2, REAL8, "dQuadMon2", 0)
 DEFINE_ISDEFAULT_FUNC(Redshift, REAL8, "redshift", 0)
-DEFINE_ISDEFAULT_FUNC(EccentricityFreq, REAL8, "f_ecc", -1.0)
+DEFINE_ISDEFAULT_FUNC(EccentricityFreq, REAL8, "f_ecc", LAL_DEFAULT_F_ECC)
 
 DEFINE_ISDEFAULT_FUNC(NonGRPhi1, REAL8, "phi1", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRPhi2, REAL8, "phi2", 0)
@@ -329,5 +337,7 @@ DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
+/* SEOBNRv4P */
+DEFINE_ISDEFAULT_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
 
 #undef String

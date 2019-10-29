@@ -40,7 +40,6 @@
 
 #include <lalapps.h>
 #include <series.h>
-#include <processtable.h>
 #include <lalappsfrutils.h>
 
 #include <lal/LALConfig.h>
@@ -66,11 +65,9 @@
 #include <lal/Date.h>
 #include <lal/Units.h>
 #include <lal/FindChirp.h>
-#include <lal/FindChirpSP.h>
-#include <lal/FindChirpTD.h>
-#include <lal/FindChirpChisq.h>
 #include <lal/LALFrameL.h>
 #include <lal/LALDict.h>
+#include <lal/LALNoiseModels.h>
 
 #include <lal/LALSimulation.h>
 #include <lal/LALSimNoise.h>

@@ -95,7 +95,6 @@
  *
  *//*@{*/
 
-#include <lal/LALPSpinInspiralRD.h>
 #include <lal/LALAdaptiveRungeKuttaIntegrator.h>
 
 #include <lal/Units.h>
@@ -103,6 +102,14 @@
 #include <lal/SeqFactories.h>
 #include <lal/NRWaveInject.h>
 #include <lal/RealFFT.h>
+
+/* use error codes above 1024 to avoid conflicts with GSL */
+#define LALPSIRDPN_TEST_ENERGY		1025
+#define LALPSIRDPN_TEST_OMEGADOT	1026
+#define LALPSIRDPN_TEST_OMEGANAN	1028
+#define LALPSIRDPN_TEST_OMEGAMATCH      1029
+#define LALPSIRDPN_TEST_OMEGANONPOS     1031
+#define LALPSIRDPN_TEST_OMEGACUT        1032
 
 #define sqrtOnePointFive 1.22474
 #define sqrtPoint15      0.387298
@@ -272,7 +279,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
 
     case LAL_PNORDER_THREE_POINT_FIVE:
       mparams->wdotorb[7] = paramsInit->ak.ST[8];
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -282,7 +289,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->wdotorblog = paramsInit->ak.ST[7];
       mparams->wdotspin30S1LNh = -LAL_PI/3. * ( 188. - 151./2./mparams->m1m);
       mparams->wdotspin30S2LNh = -LAL_PI/3. * ( 188. + 151./2./mparams->m2m);
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -294,7 +301,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->wdotspin25S2LNh = -31319. / 1008. + 1159. / 24. * mparams->eta + (-809. / 84. + 281. / 8. * mparams->eta) * mparams->m1m2;
       mparams->S1dot25 = 0.5625 + 1.25 * mparams->eta - mparams->eta * mparams->eta / 24. + mparams->dm * (-0.5625 + 0.625 * mparams->eta);
       mparams->S2dot25 = 0.5625 + 1.25 * mparams->eta - mparams->eta * mparams->eta / 24. - mparams->dm * (-0.5625 + 0.625 * mparams->eta);
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -311,7 +318,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->epnspin20S2S2 = (1. + mparams->m1m2) * (1. + mparams->m1m2) / 2.;
       mparams->epnspin20S1S1dotLNh = -3. * (1. + mparams->m2m1) * (1. + mparams->m2m1) / 2.;
       mparams->epnspin20S2S2dotLNh = -3. * (1. + mparams->m1m2) * (1. + mparams->m1m2) / 2.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -324,20 +331,20 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->LNhdot15 = 0.5;
       mparams->S1dot15 = (4.0 + 3.0 * mparams->m2m1) / 2.0 * mparams->eta;
       mparams->S2dot15 = (4.0 + 3.0 * mparams->m1m2) / 2.0 * mparams->eta;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
     case LAL_PNORDER_ONE:
       mparams->epnorb[1] = paramsInit->ak.ETa1;
       mparams->wdotorb[2] = paramsInit->ak.ST[2];
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
     case LAL_PNORDER_HALF:
       mparams->wdotorb[1] = paramsInit->ak.ST[1];
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -370,7 +377,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->wdotspin15S2LNh   = 0.;
       mparams->S1dot15           = 0.;
       mparams->S2dot15           = 0.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -379,7 +386,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->wdotspin20S1S2      = 0.;
       mparams->epnspin20S1S2       = 0.;
       mparams->epnspin20S1S2dotLNh = 0.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -393,7 +400,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->epnspin20S2S2 = 0.;
       mparams->epnspin20S1S1dotLNh = 0.;
       mparams->epnspin20S2S2dotLNh = 0.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -405,7 +412,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
       mparams->wdotspin25S2LNh     = 0.;
       mparams->S1dot25             = 0.;
       mparams->S2dot25             = 0.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -414,7 +421,7 @@ static int XLALPSpinInspiralRDSetParams(LALPSpinInspiralRDparams *mparams,Inspir
     case LAL_INSPIRAL_INTERACTION_SPIN_ORBIT_25PN:
       mparams->wdotspin30S1LNh     = 0.;
       mparams->wdotspin30S2LNh     = 0.;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
       __attribute__ ((fallthrough));
 #endif
 
@@ -684,7 +691,7 @@ static int XLALSpinInspiralDerivatives(double t, const double values[], double d
 } /* end of XLALSpinInspiralDerivatives */
 
 
-void LALSpinInspiralDerivatives(REAL8Vector * values, REAL8Vector * dvalues, void *mparams)
+static void LALSpinInspiralDerivatives(REAL8Vector * values, REAL8Vector * dvalues, void *mparams)
 {
   XLALSpinInspiralDerivatives(0.,values->data,dvalues->data,mparams);
 }				/* end of LALSpinInspiralDerivatives */
@@ -700,19 +707,6 @@ static int XLALPSpinInspiralRDEngine(
 			REAL8Vector * phi,
 			InspiralTemplate *params,
 			InspiralInit     *paramsInit);
-
-
-void LALPSpinInspiralRD(LALStatus * status, REAL4Vector * signalvec, InspiralTemplate * params)
-{
-  INITSTATUS(status);
-  ATTATCHSTATUSPTR(status);
-
-  if (XLALPSpinInspiralRD(signalvec, params))
-    ABORTXLAL(status);
-
-  DETATCHSTATUSPTR(status);
-  RETURN(status);
-}
 
 
 int XLALPSpinInspiralRD(REAL4Vector * signalvec, InspiralTemplate * params)
@@ -753,20 +747,6 @@ int XLALPSpinInspiralRD(REAL4Vector * signalvec, InspiralTemplate * params)
 /**
  * Function to produce waveform templates
  */
-void LALPSpinInspiralRDTemplates(LALStatus * status,
-         REAL4Vector * signalvec1,
-         REAL4Vector * signalvec2,
-         InspiralTemplate * params)
-{
-    INITSTATUS(status);
-    ATTATCHSTATUSPTR(status);
-
-    if (XLALPSpinInspiralRDTemplates(signalvec1, signalvec2, params))
-      ABORTXLAL(status);
-
-    DETATCHSTATUSPTR(status);
-    RETURN(status);
-}
 
 int XLALPSpinInspiralRDTemplates(
          REAL4Vector * signalvec1,
@@ -820,20 +800,6 @@ int XLALPSpinInspiralRDTemplates(
 /**
  * Function Module to produce injection waveforms
  */
-void LALPSpinInspiralRDForInjection(LALStatus        * status,
-            CoherentGW       * waveform,
-            InspiralTemplate * params,
-            PPNParamStruc    * ppnParams)
-{
-    INITSTATUS(status);
-    ATTATCHSTATUSPTR(status);
-
-    if (XLALPSpinInspiralRDForInjection(waveform, params, ppnParams))
-      ABORTXLAL(status);
-
-    DETATCHSTATUSPTR(status);
-    RETURN(status);
-}
 
 int XLALPSpinInspiralRDForInjection(
             CoherentGW       * waveform,
@@ -958,20 +924,6 @@ int XLALPSpinInspiralRDForInjection(
 
     return XLAL_SUCCESS;
 } /* End LALPSpinInspiralRDForInjection */
-
-void LALPSpinInspiralRDFreqDom(LALStatus * status,
-			       REAL4Vector * signalvec,
-			       InspiralTemplate * params)
-{
-    INITSTATUS(status);
-    ATTATCHSTATUSPTR(status);
-
-    if (XLALPSpinInspiralRDFreqDom(signalvec, params))
-      ABORTXLAL(status);
-
-    DETATCHSTATUSPTR(status);
-    RETURN(status);
-}
 
 int XLALPSpinInspiralRDFreqDom(
 			       REAL4Vector * signalvec,

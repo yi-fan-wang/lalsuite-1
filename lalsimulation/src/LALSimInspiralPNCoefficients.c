@@ -907,7 +907,7 @@ XLALSimInspiralPNPhasing_F2(
         case LAL_SIM_INSPIRAL_SPIN_ORDER_ALL:
         case LAL_SIM_INSPIRAL_SPIN_ORDER_35PN:
 	    pfa->v[7] += XLALSimInspiralTaylorF2Phasing_7PNSOCoeff(m1M)*chi1L+XLALSimInspiralTaylorF2Phasing_7PNSOCoeff(m2M)*chi2L;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_SPIN_ORDER_3PN:
@@ -916,7 +916,7 @@ XLALSimInspiralPNPhasing_F2(
 	      + XLALSimInspiralTaylorF2Phasing_6PNS1S2OCoeff(eta)*chi1L*chi2L
 	      + (XLALSimInspiralTaylorF2Phasing_6PNQM2SCoeff(m1M)*qm_def1+XLALSimInspiralTaylorF2Phasing_6PNSelf2SCoeff(m1M))*chi1sq
 	      + (XLALSimInspiralTaylorF2Phasing_6PNQM2SCoeff(m2M)*qm_def2+XLALSimInspiralTaylorF2Phasing_6PNSelf2SCoeff(m2M))*chi2sq;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_SPIN_ORDER_25PN:
@@ -924,7 +924,7 @@ XLALSimInspiralPNPhasing_F2(
 	      + XLALSimInspiralTaylorF2Phasing_5PNSOCoeff(m2M)*chi2L;
             pfa->vlogv[5] += 3.*(XLALSimInspiralTaylorF2Phasing_5PNSOCoeff(m1M)*chi1L
 				 + XLALSimInspiralTaylorF2Phasing_5PNSOCoeff(m2M)*chi2L);
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_SPIN_ORDER_2PN:
@@ -934,12 +934,12 @@ XLALSimInspiralPNPhasing_F2(
 	      + (XLALSimInspiralTaylorF2Phasing_4PNQM2SOCoeff(m2M)*qm_def2+XLALSimInspiralTaylorF2Phasing_4PNSelf2SOCoeff(m2M))*chi2L*chi2L
 	      + (XLALSimInspiralTaylorF2Phasing_4PNQM2SCoeff(m1M)*qm_def1+XLALSimInspiralTaylorF2Phasing_4PNSelf2SCoeff(m1M))*chi1sq
 	      + (XLALSimInspiralTaylorF2Phasing_4PNQM2SCoeff(m2M)*qm_def2+XLALSimInspiralTaylorF2Phasing_4PNSelf2SCoeff(m2M))*chi2sq;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_SPIN_ORDER_15PN:
             pfa->v[3] += XLALSimInspiralTaylorF2Phasing_3PNSOCoeff(m1M)*chi1L+XLALSimInspiralTaylorF2Phasing_3PNSOCoeff(m2M)*chi2L;
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_SPIN_ORDER_1PN:
@@ -959,31 +959,31 @@ XLALSimInspiralPNPhasing_F2(
     {
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_75PN:
             pfa->v[15] = (lambda1*XLALSimInspiralTaylorF2Phasing_15PNTidalCoeff(m1M) + lambda2*XLALSimInspiralTaylorF2Phasing_15PNTidalCoeff(m2M));
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_DEFAULT:
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_7PN:
             pfa->v[14] = (lambda1*XLALSimInspiralTaylorF2Phasing_14PNTidalCoeff(m1M) + lambda2*XLALSimInspiralTaylorF2Phasing_14PNTidalCoeff(m2M));
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_65PN:
             pfa->v[13] = (lambda1*XLALSimInspiralTaylorF2Phasing_13PNTidalCoeff(m1M) + lambda2*XLALSimInspiralTaylorF2Phasing_13PNTidalCoeff(m2M));
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_6PN:
             pfa->v[12] = (lambda1*XLALSimInspiralTaylorF2Phasing_12PNTidalCoeff(m1M) + lambda2*XLALSimInspiralTaylorF2Phasing_12PNTidalCoeff(m2M) );
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_5PN:
             pfa->v[10] = ( lambda1*XLALSimInspiralTaylorF2Phasing_10PNTidalCoeff(m1M) + lambda2*XLALSimInspiralTaylorF2Phasing_10PNTidalCoeff(m2M) );
-#if __GNUC__ >= 7
+#if __GNUC__ >= 7 && !defined __INTEL_COMPILER
             __attribute__ ((fallthrough));
 #endif
         case LAL_SIM_INSPIRAL_TIDAL_ORDER_0PN:
@@ -1961,14 +1961,43 @@ XLALSimInspiralL_2PN(
         return 3./2. + eta/6.;
 }
 
-/* Orbital averaged from eq. 2.9c of
- *arXiv:gr-qc/9506022
+/* Orbital averaged from eq.(2.9c) of
+ * \cite Kidder:1995zr, see also eq.(4.7) of \cite Bohe:2012mr.
+ * Explicit formula can be found in https://dcc.ligo.org/T1500554/public.
  */
 static REAL8 UNUSED
-XLALSimInspiralL_3PNScoeff(
+XLALSimInspiralL_3PNSiAvgcoeff(
         REAL8 mByM)
 {
-        return 0.5*(3.+1./mByM);
+        return -0.25*(3.+1./mByM);
+}
+
+static REAL8 UNUSED
+XLALSimInspiralL_3PNLiSLAvgcoeff(
+        REAL8 mByM)
+{
+        return -1./12.-2.25/mByM;
+}
+
+static REAL8 UNUSED
+XLALSimInspiralL_3PNniSncoeff(
+        REAL8 mByM)
+{
+        return -0.5+0.5/mByM;
+}
+
+static REAL8 UNUSED
+XLALSimInspiralL_3PNviSvcoeff(
+        REAL8 mByM)
+{
+        return -1.-1./mByM;
+}
+
+static REAL8 UNUSED
+XLALSimInspiralL_3PNLiSLcoeff(
+        REAL8 mByM)
+{
+        return -5./6.-2.5/mByM;
 }
 
 /* eq. 4.7 of http://arxiv.org/pdf/1212.5520.pdf */
@@ -2239,8 +2268,21 @@ XLALSimInspiralTaylorEtZeta_7PNCoeff(
 {
 	return (129.817/2.304 - 320.7739/4.8384 * eta + 61.3373/1.2096 * eta*eta) * LAL_PI;
 }
-// added for eccentricity corrections
-// the code is not approved, hence I will use function name as I want
+
+
+/**
+ * Computes the PN Coefficients for using in the TaylorF2Ecc equation.
+ *
+ * 3-dimensional REAL8 array eccPNCoeffs[ORDER][v_power][v0_power] are calculated,
+ * where ORDER is relative PN order, v_power is power of v, and v0_power is power of v0.
+ * Note that ORDER = v_power + v0_power.
+ *
+ * Terms given in equation 6.26 of: Blake Moore, Marc Favata,
+ * K.G.Arun, and Chandra Kant Mishra, "Gravitational-wave phasing
+ * for low-eccentricity inspiralling compact binaries to 3PN order",
+ * Phys. Rev. D 93, 124061 (2016), arXiv:1605.00304
+ */
+
 static INT4 UNUSED
 eccentricityPNCoeffs_F2(REAL8 eta, REAL8 eccPNCoeffs[LAL_MAX_ECC_PN_ORDER+1][LAL_MAX_ECC_PN_ORDER+1][LAL_MAX_ECC_PN_ORDER+1])
 {
@@ -2279,6 +2321,12 @@ eccentricityPNCoeffs_F2(REAL8 eta, REAL8 eccPNCoeffs[LAL_MAX_ECC_PN_ORDER+1][LAL
   //printPNCoeffs_F2(eccPNCoeffs);
   return ret;
 }
+
+/**
+ * Compute eccentric phase correction term using eccPNCeoffs[k][i][j]
+ *
+ */
+
 static REAL8 UNUSED
 eccentricityPhasing_F2(REAL8 v, REAL8 v0, REAL8 ecc, REAL8 eta, INT4 ecc_order)
 {

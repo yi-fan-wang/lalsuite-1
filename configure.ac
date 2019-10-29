@@ -1,5 +1,5 @@
 AC_PREREQ([2.63])
-AC_INIT([LALSuite],[6.59.1],[lal-discuss@ligo.org])
+AC_INIT([LALSuite],[6.62.1],[lal-discuss@ligo.org])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
@@ -11,7 +11,7 @@ AM_INIT_AUTOMAKE([ \
   subdir-objects \
   color-tests \
   parallel-tests \
-  tar-ustar \
+  tar-pax \
   dist-xz \
   no-dist-gzip \
 ])

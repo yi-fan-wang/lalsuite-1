@@ -1,12 +1,13 @@
 %define nightly @NIGHTLY_VERSION@%{nil}
-%define _prefix /usr
-%define _mandir %{_prefix}/share/man
 %define _sysconfdir %{_prefix}/etc
 %define release 1
+%define configure_opts GSL_LIBS="-lgsl"
 
 %if "%{?nightly:%{nightly}}%{!?nightly:0}" == "%{nil}"
 %undefine nightly
 %endif
+
+# -- metadata ---------------
 
 Name: @PACKAGE@
 Version: @BASE_VERSION@
@@ -14,50 +15,76 @@ Release: %{?nightly:0.%{nightly}}%{!?nightly:%{release}}%{?dist}
 Summary: LSC Algorithm Inspiral Library
 License: GPLv2+
 Group: LAL
-Source: %{name}-%{version}%{?nightly:-%{nightly}}.tar.xz
+Source0: http://software.ligo.org/lscsoft/source/lalsuite/%{name}-%{version}%{?nightly:-%{nightly}}.tar.xz
 URL: https://wiki.ligo.org/Computing/LALSuite
 Packager: Adam Mercer <adam.mercer@ligo.org>
-BuildRequires: python2-rpm-macros
-BuildRequires: pkgconfig >= 0.18.0
+Prefix: %{_prefix}
+
+# -- build requirements -----
+
+# C
 BuildRequires: gsl-devel
-BuildRequires: libmetaio-devel
-BuildRequires: numpy
-BuildRequires: octave-devel
-BuildRequires: python-devel
-BuildRequires: swig >= 3.0.7
 BuildRequires: lal-devel >= @MIN_LAL_VERSION@
-BuildRequires: lal-octave >= @MIN_LAL_VERSION@
-BuildRequires: python2-lal >= @MIN_LAL_VERSION@
 BuildRequires: lalframe-devel >= @MIN_LALFRAME_VERSION@
-BuildRequires: lalframe-octave >= @MIN_LALFRAME_VERSION@
-BuildRequires: python2-lalframe >= @MIN_LALFRAME_VERSION@
 BuildRequires: lalmetaio-devel >= @MIN_LALMETAIO_VERSION@
-BuildRequires: lalmetaio-octave >= @MIN_LALMETAIO_VERSION@
-BuildRequires: python2-lalmetaio >= @MIN_LALMETAIO_VERSION@
 BuildRequires: lalsimulation-devel >= @MIN_LALSIMULATION_VERSION@
-BuildRequires: lalsimulation-octave >= @MIN_LALSIMULATION_VERSION@
-BuildRequires: python2-lalsimulation >= @MIN_LALSIMULATION_VERSION@
+BuildRequires: libmetaio-devel
+BuildRequires: pkgconfig >= 0.18.0
+
+# swig
+BuildRequires: swig >= 3.0.7
+
+# python2
+BuildRequires: python2-rpm-macros
+BuildRequires: python
+BuildRequires: python-devel
 BuildRequires: glue
+BuildRequires: numpy
+BuildRequires: python2-lal >= @MIN_LAL_VERSION@
+BuildRequires: python2-lalframe >= @MIN_LALFRAME_VERSION@
+BuildRequires: python2-lalmetaio >= @MIN_LALMETAIO_VERSION@
+BuildRequires: python2-lalsimulation >= @MIN_LALSIMULATION_VERSION@
+
+# python3x
+BuildRequires: python-srpm-macros
+BuildRequires: python3-rpm-macros
+BuildRequires: python%{python3_version_nodots}
+BuildRequires: python%{python3_version_nodots}-devel
+BuildRequires: python%{python3_version_nodots}-glue
+BuildRequires: python%{python3_version_nodots}-lal >= @MIN_LAL_VERSION@
+BuildRequires: python%{python3_version_nodots}-lalframe >= @MIN_LALFRAME_VERSION@
+BuildRequires: python%{python3_version_nodots}-lalmetaio >= @MIN_LALMETAIO_VERSION@
+BuildRequires: python%{python3_version_nodots}-lalsimulation >= @MIN_LALSIMULATION_VERSION@
+BuildRequires: python%{python3_version_nodots}-numpy
+
+# octave
+BuildRequires: octave-devel
+BuildRequires: lal-octave >= @MIN_LAL_VERSION@
+BuildRequires: lalframe-octave >= @MIN_LALFRAME_VERSION@
+BuildRequires: lalmetaio-octave >= @MIN_LALMETAIO_VERSION@
+BuildRequires: lalsimulation-octave >= @MIN_LALSIMULATION_VERSION@
+
+# -- packages ---------------
+
+# lalinspiral
 Requires: gsl
-Requires: libframe
 Requires: libmetaio
 Requires: lal >= @MIN_LAL_VERSION@
 Requires: lalframe >= @MIN_LALFRAME_VERSION@
 Requires: lalmetaio >= @MIN_LALMETAIO_VERSION@
 Requires: lalsimulation >= @MIN_LALSIMULATION_VERSION@
-Prefix: %{_prefix}
 
 %description
 The LSC Algorithm Inspiral Library for gravitational wave data analysis. This
 package contains the shared-object libraries needed to run applications
 that use the LAL Inspiral library.
 
+# lalinspiral-devel
 %package devel
 Summary: Files and documentation needed for compiling programs that use LAL Inspiral
 Group: LAL
 Requires: %{name} = %{version}
 Requires: gsl-devel
-Requires: libframe-devel
 Requires: libmetaio-devel
 Requires: lal-devel >= @MIN_LAL_VERSION@
 Requires: lalframe-devel >= @MIN_LALFRAME_VERSION@
@@ -68,8 +95,9 @@ The LSC Algorithm Inspiral Library for gravitational wave data analysis. This
 package contains files needed build applications that use the LAL Inspiral
 library.
 
+# python2-lalinspiral
 %package -n python2-%{name}
-Summary: Python bindings for LALInspiral
+Summary: Python %{python2_version} bindings for LALInspiral
 Group: LAL
 Requires: %{name} = %{version}
 Requires: numpy
@@ -82,10 +110,31 @@ Requires: python2-lalsimulation >= @MIN_LALSIMULATION_VERSION@
 Requires: python2-ligo-segments
 Requires: glue
 Obsoletes: %{name}-python
-Provides: %{name}-python
+Provides: %{name}-python = %{version}
+%{?python_provide:%python_provide python2-%{name}}
 %description -n python2-%{name}
+This package provides the Python %{python2_version} bindings for LALInspiral.
+
+# python3x-lalinspiral
+%package -n python%{python3_pkgversion}-%{name}
+Summary: Python %{python3_version} bindings for LALInspiral
+Group: LAL
+Requires: %{name} = %{version}
+Requires: python%{python3_version_nodots}
+Requires: python%{python3_version_nodots}-glue
+Requires: python%{python3_version_nodots}-lal >= @MIN_LAL_VERSION@
+Requires: python%{python3_version_nodots}-lalburst
+Requires: python%{python3_version_nodots}-lalframe >= @MIN_LALFRAME_VERSION@
+Requires: python%{python3_version_nodots}-lalmetaio >= @MIN_LALMETAIO_VERSION@
+Requires: python%{python3_version_nodots}-lalsimulation >= @MIN_LALSIMULATION_VERSION@
+Requires: python%{python3_version_nodots}-ligo-segments
+Requires: python%{python3_version_nodots}-numpy
+Provides: python%{python3_version_nodots} = %{version}
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
+%description -n python%{python3_pkgversion}-%{name}
 This package provides the Python bindings for LALInspiral.
 
+# lalinspiral-octave
 %package octave
 Summary: Octave bindings for LALInspiral
 Group: LAL
@@ -98,18 +147,37 @@ Requires: lalsimulation-octave >= @MIN_LALSIMULATION_VERSION@
 %description octave
 This package provides the Octave bindings for LALInspiral.
 
+# -- build stages -----------
+
 %prep
 %setup -q -n %{name}-%{version}%{?nightly:-%{nightly}}
 
 %build
-%configure --disable-gcc-flags --enable-swig
+# build C library with python2
+%configure %{configure_opts} --disable-gcc-flags --enable-swig PYTHON=%{__python2}
 %{__make} %{?_smp_mflags} V=1
 
+# build python3 library (copy things so we don't have to rebuild them)
+rm -rf %py3dir
+cp -r . %py3dir
+pushd %py3dir
+%configure %{configure_opts} --disable-gcc-flags --disable-swig-octave --enable-swig-python PYTHON=%{__python3}
+%{__make} %{?_smp_mflags} V=1 -C swig
+%{__make} %{?_smp_mflags} V=1 -C python
+popd
+
 %check
+# C + python2 + octave
 %{__make} %{?_smp_mflags} V=1 VERBOSE=1 check
+# python3
+[ -d %py3dir/test/python ] && %{__make} %{?_smp_mflags} V=1 VERBOSE=1 -C %py3dir -C test/python check
 
 %install
+# C + python2 + octave
 %make_install
+# python3
+%{__make} -C %py3dir -C swig install-exec-am DESTDIR=%{?buildroot}
+%{__make} -C %py3dir -C python install DESTDIR=%{?buildroot}
 find $RPM_BUILD_ROOT%{_libdir} -name '*.la' -delete
 
 %post
@@ -121,6 +189,8 @@ ldconfig
 %clean
 [ ${RPM_BUILD_ROOT} != "/" ] && rm -Rf ${RPM_BUILD_ROOT}
 rm -Rf ${RPM_BUILD_DIR}/%{name}-%{version}%{?nightly:-%{nightly}}
+
+# -- files ------------------
 
 %files
 %defattr(-,root,root)
@@ -142,10 +212,17 @@ rm -Rf ${RPM_BUILD_DIR}/%{name}-%{version}%{?nightly:-%{nightly}}
 %license COPYING
 %{python2_sitearch}/*
 
+%files -n python%{python3_pkgversion}-%{name}
+%defattr(-,root,root)
+%license COPYING
+%{python3_sitearch}/*
+
 %files octave
 %defattr(-,root,root)
 %license COPYING
 %{_prefix}/lib*/octave/*/site/oct/*/lalinspiral.oct*
+
+# -- changelog --------------
 
 # dates should be formatted using: 'date +"%a %b %d %Y"'
 %changelog

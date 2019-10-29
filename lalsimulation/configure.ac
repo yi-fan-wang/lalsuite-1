@@ -1,5 +1,5 @@
 AC_PREREQ([2.63])
-AC_INIT([LALSimulation],[1.9.0.1],[lal-discuss@ligo.org])
+AC_INIT([LALSimulation],[1.9.1.1],[lal-discuss@ligo.org])
 AC_CONFIG_HEADERS([src/config.h src/LALSimulationConfig.h])
 AC_CONFIG_SRCDIR([src/LALSimulation.c])
 AC_CONFIG_AUX_DIR([gnuscripts])
@@ -25,6 +25,7 @@ AC_CONFIG_FILES([ \
   src/version.c \
   swig/Makefile \
   test/Makefile \
+  test/python/Makefile \
 ])
 AM_INIT_AUTOMAKE([ \
   1.11 \
@@ -32,7 +33,7 @@ AM_INIT_AUTOMAKE([ \
   subdir-objects \
   color-tests \
   parallel-tests \
-  tar-ustar \
+  tar-pax \
   dist-xz \
   no-dist-gzip \
 ])
@@ -62,9 +63,9 @@ LALSUITE_DISTCHECK_CONFIGURE_FLAGS
 #    then increment age.
 # 6. if any interfaces have been removed since the last public release,
 #    then set age to 0.
-AC_SUBST([LIBCURRENT],[20])
+AC_SUBST([LIBCURRENT],[21])
 AC_SUBST([LIBREVISION],[0])
-AC_SUBST([LIBAGE],[0])
+AC_SUBST([LIBAGE],[1])
 AC_SUBST([LIBVERSION],[${LIBCURRENT}:${LIBREVISION}:${LIBAGE}])
 
 # nightly build

@@ -1,12 +1,14 @@
 EXTRA_DIST =
 include $(top_srcdir)/gnuscripts/lalsuite_test.am
 
+SUBDIRS = \
+	$(END_OF_LIST)
+
 # Add compiled test programs to this variable
 test_programs += BCVTemplates
 test_programs += BasicInjectTest
 test_programs += CoarseTest
 test_programs += CoarseTest2
-test_programs += FindChirpBankVetoTest
 test_programs += GenerateInspiralWaveform
 test_programs += GeneratePPNAmpCorInspiralTest
 test_programs += GeneratePPNInspiralTest
@@ -38,9 +40,6 @@ test_programs += PNTemplates
 #test_programs += LALHybridTest
 #test_programs += NRWaveIOTest
 #test_programs += SpaceCovering
-# requires lalstochastic:
-#test_programs += CoherentInspiralFilterTest
-#test_programs += CoherentInspiralInputTest
 
 # Add shell, Python, etc. test scripts to this variable
 test_scripts +=
@@ -59,3 +58,7 @@ EXTRA_DIST += \
 	NRWaveIOTest.data \
 	injection.xml \
 	$(END_OF_LIST)
+
+if HAVE_PYTHON
+SUBDIRS += python
+endif

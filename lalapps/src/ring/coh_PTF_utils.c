@@ -575,6 +575,54 @@ RingDataSegments *coh_PTF_get_segments(
   return segments;
 }
 
+
+/*
+ * Create a TimeSlideSegmentMap structure.
+ */
+
+static TimeSlideSegmentMapTable *XLALCreateTimeSlideSegmentMapTableRow(void)
+{
+  TimeSlideSegmentMapTable *new = XLALMalloc(sizeof(*new));
+
+  if(!new)
+    XLAL_ERROR_NULL(XLAL_EFUNC);
+
+  new->next = NULL;
+  new->time_slide_id = -1;
+  new->segment_def_id = -1;
+
+  return new;
+}
+
+
+/*
+ * Destroy a TimeSlideSegmentMap structure.
+ */
+
+
+static void XLALDestroyTimeSlideSegmentMapTableRow(TimeSlideSegmentMapTable *row)
+{
+  XLALFree(row);
+}
+
+
+/*
+ * Destroy a TimeSlideSegmentMap linked list.
+ */
+
+
+static void XLALDestroyTimeSlideSegmentMapTable(TimeSlideSegmentMapTable *head)
+{
+  while(head)
+  {
+    TimeSlideSegmentMapTable *next = head->next;
+    XLALDestroyTimeSlideSegmentMapTableRow(head);
+    head = next;
+  }
+}
+
+
+
 void coh_PTF_create_time_slide_table(
   struct coh_PTF_params   *params,
   INT8                    *slideIDList,
@@ -2550,12 +2598,8 @@ MultiInspiralTable* coh_PTF_create_multi_event(
   MultiInspiralTable *currEvent;
   currEvent = (MultiInspiralTable *)
       LALCalloc(1, sizeof(MultiInspiralTable));
-  currEvent->event_id = (EventIDColumn *)
-      LALCalloc(1, sizeof(EventIDColumn));
-  currEvent->event_id->id=*eventId;
-  currEvent->time_slide_id = (EventIDColumn *)
-      LALCalloc(1, sizeof(EventIDColumn));
-  currEvent->time_slide_id->id=slideId;
+  currEvent->event_id=*eventId;
+  currEvent->time_slide_id=slideId;
   (*eventId)++;
   trigTime = cohSNR->epoch;
   XLALGPSAdd(&trigTime,currPos*cohSNR->deltaT);
@@ -3240,14 +3284,6 @@ void coh_PTF_cleanup(
     MultiInspiralTable *thisEvent;
     thisEvent = events;
     events = events->next;
-    if ( thisEvent->event_id )
-    {
-      LALFree( thisEvent->event_id );
-    }
-    if ( thisEvent->time_slide_id )
-    {
-      LALFree( thisEvent->time_slide_id );
-    }
     LALFree( thisEvent );
   }
   while ( snglEvents )
@@ -3263,10 +3299,6 @@ void coh_PTF_cleanup(
     InspiralTemplate *thisTmplt;
     thisTmplt = PTFbankhead;
     PTFbankhead = PTFbankhead->next;
-    if ( thisTmplt->event_id )
-    {
-      LALFree( thisTmplt->event_id );
-    }
     LALFree( thisTmplt );
   }
   UINT4 sgmnt;

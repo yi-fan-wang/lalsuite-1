@@ -31,7 +31,6 @@
 
 #include <lalapps.h>
 #include <math.h>
-#include <processtable.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +46,6 @@
 #include <lal/LALFrStream.h>
 #include <lal/FrequencySeries.h>
 #include <lal/GenerateBurst.h>
-#include <lal/Inject.h>
 #include <lal/LALConstants.h>
 #include <lal/LALDatatypes.h>
 #include <lal/LALError.h>

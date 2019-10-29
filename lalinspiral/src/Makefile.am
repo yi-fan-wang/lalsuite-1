@@ -3,26 +3,14 @@ MOSTLYCLEANFILES =
 include $(top_srcdir)/gnuscripts/lalsuite_header_links.am
 include $(top_srcdir)/gnuscripts/lalsuite_vcs_info.am
 
-noinst_HEADERS = \
-	CreateMetaTableDir.h
-
 pkginclude_HEADERS = \
 	BBHPhenomCoeffs.h \
-	LALInspiralPyCBCTemplate.h \
-	CoherentInspiral.h \
 	CoincInspiralEllipsoid.h \
 	FindChirp.h \
-	FindChirpACTD.h \
-	FindChirpChisq.h \
-	FindChirpDatatypes.h \
 	FindChirpPTF.h \
-	FindChirpSP.h \
-	FindChirpTD.h \
 	GenerateInspRing.h \
 	GenerateInspiral.h \
 	GeneratePPNInspiral.h \
-	GenerateRing.h \
-	Inject.h \
 	InspiralInjectionParams.h \
 	LALEOBNRv2Waveform.h \
 	LALInspiral.h \
@@ -32,7 +20,6 @@ pkginclude_HEADERS = \
 	LALInspiralSBankOverlap.h \
 	LALInspiralVCSInfoHeader.h \
 	LALNoiseModelsInspiral.h \
-	LALPSpinInspiralRD.h \
 	LALTrigScanCluster.h \
 	LALSTPNWaveformErrors.h \
 	LALSTPNWaveform2.h \
@@ -54,35 +41,19 @@ lib_LTLIBRARIES = liblalinspiral.la
 
 liblalinspiral_la_SOURCES = \
 	BandPassInspiralTemplate.c \
-	CoherentInspiralFilter.c \
-	CoherentInspiralInput.c \
-	CoincInspiralEllipsoid.c \
-	CoincInspiralUtils.c \
-	CoincRingdownUtils.c \
-	CreateMetaTableDir.c \
-	FindChirpBankVeto.c \
-	FindChirpIMRSimulation.c \
-	FindChirpLinkedList.c \
-	FindChirpPTFTemplate.c \
 	FindChirpPTFWaveform.c \
 	FindChirpPhenomWaveform.c \
-	FindChirpSPTemplate.c \
 	FindChirpSimulation.c \
-	FindChirpTDTemplate.c \
 	GenerateInspRing.c \
 	GenerateInspiral.c \
-	GenerateInspiralSmooth.c \
 	GeneratePPNAmpCorInspiral.c \
 	GeneratePPNInspiral.c \
-	GenerateRing.c \
 	GetErrorMatrixFromSnglInspiral.c \
 	GetInspiralParams.c \
-	InjectTimeSeries.c \
 	InspiralBankGeneration.c \
 	InspiralInjectionParams.c \
 	InspiralSpinBank.c \
 	LALBCVWaveform.c \
-	LALDeterminant3.c \
 	LALEOBGetFactorizedWaveform.c \
 	LALEOBWaveform.c \
 	LALEOBNonQCCorrection.c \
@@ -113,17 +84,14 @@ liblalinspiral_la_SOURCES = \
 	LALInspiralInit.c \
 	LALInspiralLongestTemplateInBank.c \
 	LALInspiralMoments.c \
-	LALInspiralMomentsIntegrand.c \
 	LALInspiralNextTemplate.c \
 	LALInspiralNinjaInject.c \
 	LALInspiralParameterCalc.c \
-	LALInspiralParseParameters.c \
 	LALInspiralPhasing1.c \
 	LALInspiralPhasing2.c \
 	LALInspiralPhasing3.c \
 	LALInspiralPhiofVIntegrand.c \
 	LALInspiralPolarizations.c \
-	LALInspiralPyCBCTemplate.c \
 	LALInspiralRingdownWave.c \
 	LALInspiralSBankOverlap.c \
 	LALInspiralSetParams.c \
@@ -151,9 +119,7 @@ liblalinspiral_la_SOURCES = \
 	LALInspiralWaveNormalise.c \
 	LALInspiralWaveNormaliseLSO.c \
 	LALInspiralWaveOverlap.c \
-	LALInverse3.c \
 	LALNewtonianMultipole.c \
-	LALMatrixTransform.c \
 	LALPhenomWaveform.c \
 	LALPSpinInspiralRD.c \
 	LALPSpinInspiralRingdownWave.c \
@@ -173,12 +139,9 @@ liblalinspiral_la_SOURCES = \
 	NDTemplateBank.c \
 	NRWaveIO.c \
 	NRWaveInject.c \
-	Playground.c \
 	RingUtils.c \
 	SimInspiralUtils.c \
-	SimRingdownUtils.c \
 	SnglInspiralUtils.c \
-	SnglRingdownUtils.c \
 	TrigScanEThincaCommon.c \
 	$(END_OF_LIST)
 

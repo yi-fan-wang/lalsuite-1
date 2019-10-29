@@ -20,11 +20,12 @@
 #ifndef _GENERATEPPNINSPIRAL_H
 #define _GENERATEPPNINSPIRAL_H
 
-#include <lal/LALStdlib.h>
+#include <lal/GeneratePPNInspiral.h>
+#include <lal/LALAtomicDatatypes.h>
+#include <lal/LALDatatypes.h>
+#include <lal/Random.h>
 #include <lal/SimulateCoherentGW.h>
 #include <lal/SkyCoordinates.h>
-#include <lal/Random.h>
-#include <lal/LALSimInspiral.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -291,11 +292,6 @@ typedef struct tagGalacticInspiralParamStruc {
   LIGOTimeGPS geocentEndTime; 	/**< The geocentric end time of the inspiral event */
 } GalacticInspiralParamStruc;
 
-/** UNDOCUMENTED */
-typedef struct tagAmpSwitchStruc {
-	UINT4 q0, q1, q2, q3, q4, q5;
-} AmpSwitchStruc;
-
 
 
 /* ---------- Function prototypes. ----------  */
@@ -322,15 +318,6 @@ LALGetInspiralParams( LALStatus                  *,
 		      PPNParamStruc              *output,
 		      GalacticInspiralParamStruc *input,
 		      RandomParams               *params );
-
-
-
-
-void
-LALGenerateInspiralSmooth( LALStatus            *,
-		      	   CoherentGW		**output,
-			   PPNParamStruc	*params,
-			   REAL4		*qfactor);
 
 
 /*@}*/ /* end:GeneratePPNInspiral_h */

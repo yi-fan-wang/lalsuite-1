@@ -77,7 +77,6 @@
 #include <lal/Random.h>
 #include <lal/PrintFTSeries.h>
 #include <lal/TimeFreqFFT.h>
-#include <lal/LALMoment.h>
 
 #include <lal/LALInspiral.h>
 
@@ -177,12 +176,6 @@ do {                                                                 \
     LALFree( lastPtr );                                              \
   }                                                                  \
 } while (0)
-
-
-
-/* A function to convert INT8 nanoseconds to LIGOTimeGPS. */
-void
-I8ToLIGOTimeGPS( LIGOTimeGPS *output, INT8 input );
 
 
 int
@@ -376,7 +369,7 @@ main(int argc, char **argv)
   params.lengthIn = 0;
 
   /* Variable parameters. */
-  I8ToLIGOTimeGPS( &(params.epoch), EPOCH );
+  XLALINT8NSToGPS( &(params.epoch), EPOCH );
   params.deltaT = dt;
   params.mTot = m1 + m2;
   params.eta = m1*m2/( params.mTot*params.mTot );
@@ -476,14 +469,14 @@ main(int argc, char **argv)
   {
     LALSCreateVector( &stat, &ht.data, waveform.h->data->length );
     LALCCreateVector( &stat, &Hf.data, waveform.h->data->length / 2 + 1 );
-    LALCreateForwardRealFFTPlan( &stat, &fwdRealPlan, waveform.h->data->length, 0 );
+    fwdRealPlan = XLALCreateForwardREAL4FFTPlan( waveform.h->data->length, 0 );
 
     ht.f0 = 0;
     ht.deltaT = dt;
     for( i = 0; i < waveform.h->data->length ; i++)
       ht.data->data[i] = hoft->data[i];
 
-    LALTimeFreqRealFFT( &stat, &Hf, &ht, fwdRealPlan );
+    XLALREAL4TimeFreqFFT( &Hf, &ht, fwdRealPlan );
 
     if( ( fourier = fopen(fftout, "w")) == NULL)
       fourier = fopen("fftout", "w");
@@ -492,7 +485,7 @@ main(int argc, char **argv)
       fprintf(fourier," %f %1.6e %1.6e\n", f, crealf(Hf.data->data[i]), cimagf(Hf.data->data[i]));
     fclose(fourier);
 
-		LALDestroyRealFFTPlan( &stat, &fwdRealPlan );
+		XLALDestroyREAL4FFTPlan( fwdRealPlan );
     LALCDestroyVector( &stat, &Hf.data );
     LALSDestroyVector( &stat, &ht.data );
   }
@@ -573,16 +566,5 @@ main(int argc, char **argv)
   LALCheckMemoryLeaks();
   INFO( GENERATEPPNINSPIRALTESTC_MSGENORM );
   return GENERATEPPNINSPIRALTESTC_ENORM;
-}
-
-
-/* A function to convert INT8 nanoseconds to LIGOTimeGPS. */
-void
-I8ToLIGOTimeGPS( LIGOTimeGPS *output, INT8 input )
-{
-  INT8 s = input / 1000000000LL;
-  output->gpsSeconds = (INT4)( s );
-  output->gpsNanoSeconds = (INT4)( input - 1000000000LL*s );
-  return;
 }
 /** \endcond */

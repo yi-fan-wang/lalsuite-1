@@ -25,7 +25,7 @@ from scipy.stats import gaussian_kde   #rahul: for KDE implementation
 
 from matplotlib import rc
 import matplotlib
-matplotlib.rc('text.latex', preamble = '\usepackage{txfonts}')
+matplotlib.rc('text.latex', preamble=r'\usepackage{txfonts}')
 
 rc('text', usetex=True)
 rc('font', family='serif')
@@ -242,7 +242,7 @@ if __name__ == '__main__':
   Mf_imr, chif_imr = tgr.calc_final_mass_spin(m1_imr, m2_imr, chi1_imr, chi2_imr, chi1z_imr, chi2z_imr, phi12_imr, fit_formula)
 
 
-  print '... read posteriors'
+  print('... read posteriors')
   ###############################################################################################
 
   ###############################################################################################
@@ -266,35 +266,35 @@ if __name__ == '__main__':
   chif_intp = (chif_bins[:-1] + chif_bins[1:])/2.
 
 
-  print 'useKDE=',MfafKDE
+  print('useKDE=',MfafKDE)
   if MfafKDE==1:
-    print 'replacing lal P(Mfaf) with its KDE pdf'
+    print('replacing lal P(Mfaf) with its KDE pdf')
     M_i,C_i=np.meshgrid(Mf_intp,chif_intp)
     
     joint_data=np.vstack([Mf_i,chif_i]);kernel=gaussian_kde(joint_data)
     f_i = lambda x,y:kernel.evaluate([x,y])
-    print "for inspiral kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
+    print("for inspiral kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim]))
     P_Mfchif_i = np.vectorize(f_i)(M_i,C_i)/kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
 
     joint_data=np.vstack([Mf_r,chif_r]);kernel=gaussian_kde(joint_data)#;M_i,C_i=np.meshgrid(Mf_bins,chif_bins)
     f_r = lambda x,y:kernel.evaluate([x,y])
-    print "for post-inspiral kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
+    print("for post-inspiral kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim]))
     P_Mfchif_r = np.vectorize(f_r)(M_i,C_i)/kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
 
     joint_data=np.vstack([Mf_imr,chif_imr]);kernel=gaussian_kde(joint_data)#;M_i,C_i=np.meshgrid(Mf_bins,chif_bins)
     f_imr = lambda x,y:kernel.evaluate([x,y])
-    print "for imr kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
+    print("for imr kernel",kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim]))
     P_Mfchif_imr = np.vectorize(f_imr)(M_i,C_i)/kernel.integrate_box([-Mf_lim,-chif_lim],[Mf_lim,chif_lim])
     
     
     #rahul: end KDE of Mf,af
     
   elif MfafKDE==0:
-    print 'using default samples, NOKDE'
+    print('using default samples, NOKDE')
     # compute the 2D posterior distributions for the inspiral, ringodwn and IMR analyses
-    P_Mfchif_i, Mf_bins, chif_bins = np.histogram2d(Mf_i, chif_i, bins=(Mf_bins, chif_bins), normed=True)
-    P_Mfchif_r, Mf_bins, chif_bins = np.histogram2d(Mf_r, chif_r, bins=(Mf_bins, chif_bins), normed=True)
-    P_Mfchif_imr, Mf_bins, chif_bins = np.histogram2d(Mf_imr, chif_imr, bins=(Mf_bins, chif_bins), normed=True)
+    P_Mfchif_i, Mf_bins, chif_bins = np.histogram2d(Mf_i, chif_i, bins=(Mf_bins, chif_bins), density=True)
+    P_Mfchif_r, Mf_bins, chif_bins = np.histogram2d(Mf_r, chif_r, bins=(Mf_bins, chif_bins), density=True)
+    P_Mfchif_imr, Mf_bins, chif_bins = np.histogram2d(Mf_imr, chif_imr, bins=(Mf_bins, chif_bins), density=True)
     # transpose to go from (X,Y) indexing returned by np.histogram2d() to array (i,j) indexing for further
     # computations. From now onwards, different rows (i) correspond to different values of Mf and different
     # columns (j) correspond to different values of chif
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     P_Mfchif_i = P_Mfchif_i.T
     P_Mfchif_r = P_Mfchif_r.T
     P_Mfchif_imr = P_Mfchif_imr.T
-    print 'computed P_Mfchif without using KDE'
+    print('computed P_Mfchif without using KDE')
 
 
   ###############################################################################################
@@ -337,7 +337,7 @@ if __name__ == '__main__':
     P_Mfchif_r[np.isinf(P_Mfchif_r)] = 0.
     P_Mfchif_imr[np.isinf(P_Mfchif_imr)] = 0.
 
-    print '... computed (prior) corrected posteriors'
+    print('... computed (prior) corrected posteriors')
     
   ################################################################################################
   # compute the posterior of (delta_Mf/Mf, delta_chif/chif)
@@ -374,7 +374,7 @@ if __name__ == '__main__':
   conf_v1v2 = confidence(P_dMfbyMf_dchifbychif)
   gr_height = P_dMfbyMf_dchifbychif[np.argmin(abs(dMfbyMf_vec)), np.argmin(abs(dchifbychif_vec))] # taking value closest to (0,0)
   gr_conf_level = conf_v1v2.level_from_height(gr_height)
-  print '... no deviation from GR above %.1f%% confidence level'%(100.*gr_conf_level)
+  print('... no deviation from GR above %.1f%% confidence level'%(100.*gr_conf_level))
 
   # creating the parameter table
   param_table = [['Upper cutoff freq for the inspiral analysis: %s Hz'%insp_fhigh],
@@ -402,8 +402,8 @@ if __name__ == '__main__':
   # plotting                  
   #########################################################################################
   #inspiral
-  P_m1m2_i, m1_bins_i, m2_bins_i = np.histogram2d(m1_i, m2_i, bins=50, normed=True)
-  P_chi1chi2_i, chi1_bins_i, chi2_bins_i = np.histogram2d(chi1_i, chi2_i, bins=50, normed=True)
+  P_m1m2_i, m1_bins_i, m2_bins_i = np.histogram2d(m1_i, m2_i, bins=50, density=True)
+  P_chi1chi2_i, chi1_bins_i, chi2_bins_i = np.histogram2d(chi1_i, chi2_i, bins=50, density=True)
 
   P_m1m2_i = P_m1m2_i.T
   P_chi1chi2_i = P_chi1chi2_i.T
@@ -490,8 +490,8 @@ if __name__ == '__main__':
 
 
   #ringdown
-  P_m1m2_r, m1_bins_r, m2_bins_r = np.histogram2d(m1_r, m2_r, bins=50, normed=True)
-  P_chi1chi2_r, chi1_bins_r, chi2_bins_r = np.histogram2d(chi1_r, chi2_r, bins=50, normed=True)
+  P_m1m2_r, m1_bins_r, m2_bins_r = np.histogram2d(m1_r, m2_r, bins=50, density=True)
+  P_chi1chi2_r, chi1_bins_r, chi2_bins_r = np.histogram2d(chi1_r, chi2_r, bins=50, density=True)
 
   P_m1m2_r = P_m1m2_r.T
   P_chi1chi2_r = P_chi1chi2_r.T
@@ -577,8 +577,8 @@ if __name__ == '__main__':
   plt.savefig('%s/img/ringdown_Mfchif_thumb.png'%(out_dir), dpi=72)
 
   #IMR
-  P_m1m2_imr, m1_bins_imr, m2_bins_imr = np.histogram2d(m1_imr, m2_imr, bins=50, normed=True)
-  P_chi1chi2_imr, chi1_bins_imr, chi2_bins_imr = np.histogram2d(chi1_imr, chi2_imr, bins=50, normed=True)
+  P_m1m2_imr, m1_bins_imr, m2_bins_imr = np.histogram2d(m1_imr, m2_imr, bins=50, density=True)
+  P_chi1chi2_imr, chi1_bins_imr, chi2_bins_imr = np.histogram2d(chi1_imr, chi2_imr, bins=50, density=True)
 
   P_m1m2_imr = P_m1m2_imr.T
   P_chi1chi2_imr = P_chi1chi2_imr.T
@@ -762,8 +762,8 @@ if __name__ == '__main__':
   plt.savefig('%s/img/dMfbyMfdchifbychif.png' %(out_dir), dpi=300)
   plt.savefig('%s/img/dMfbyMfdchifbychif_thumb.png' %(out_dir), dpi=72)
 
-  print '... made summary plots' 
+  print('... made summary plots')
 
-  print '... completed in %f seconds' %(time.time()-start_time)
+  print('... completed in %f seconds' %(time.time()-start_time))
   #########################################################################################
 
