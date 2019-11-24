@@ -1791,6 +1791,13 @@ int XLALSimInspiralChooseFDWaveform(
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 
+    // Add the parity violation terms
+    if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
+      if (XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams) != 0) 
+        ret = XLALSimParityViolationEffect(hptilde, hctilde,distance, XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
+      if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
+    }
+
     //If polariz =0, then here is equivalent to the tgr_o2 branch, without doing anything.
     REAL8 polariz=longAscNodes;
     if (polariz) {
@@ -5648,6 +5655,56 @@ int XLALSimMassiveGravitonDispersionEffect(
   }
   return XLAL_SUCCESS;
 };
+
+int XLALSimParityViolationEffect(
+                       COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
+                       COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
+                       REAL8 r,                            /**< distance in m, luminosity distance */
+                       REAL8 parity_lambdatilt,             /**< Effective-field energy scale in ev, lambda_tilt = lambda * D_L / D_alpha */
+                       INT4 parity_alpha                  /**< temporarily equals to 1 >*/
+    )
+{
+  REAL8 f0, f, df;
+  COMPLEX16 hplus, hcross;
+  REAL8 deltaPhi1, tempVal;
+  UINT4 len, i;
+  len = (*hptilde)->data->length;
+  if ((*hctilde)->data->length != len) {
+    XLALPrintError("Lengths of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EBADLEN);
+  }
+
+  f0 = (*hptilde)->f0;
+  if ((*hctilde)->f0 != f0) {
+    XLALPrintError("Starting frequencies of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  df = (*hptilde)->deltaF;
+  if ((*hctilde)->deltaF != df) {
+    XLALPrintError("Frequency steps of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  UINT4 k = 0;
+  if (f0 == 0.0)
+      k=1;
+
+  if (parity_alpha == 1) 
+    tempVal =  LAL_H_SI * LAL_PI * LAL_PI * r / parity_lambdatilt;
+    for (i=k; i<len; i++) {
+      f = f0 + i*df;
+      deltaPhi1 = tempVal * f * f;
+
+      hplus = (*hptilde)->data->data[i] + (*hctilde)->data->data[i] * deltaPhi1;
+      hcross = (*hctilde)->data->data[i] - (*hptilde)->data->data[i] * deltaPhi1;
+
+      (*hptilde)->data->data[i] = hplus;
+      (*hctilde)->data->data[i] = hcross;
+  }
+  return XLAL_SUCCESS;
+}
+
 
 /** @} */
 
