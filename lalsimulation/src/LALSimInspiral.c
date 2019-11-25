@@ -1795,7 +1795,7 @@ int XLALSimInspiralChooseFDWaveform(
     if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
       if (XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams) != 0) 
         ret = XLALSimParityViolationEffect(hptilde, hctilde,distance, XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
-      if (XLAMSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)!=0)
+      if (XLALSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)!=0)
         ret = XLALSimParityViolationEffect(hptilde, hctilde,distance, pow(10, XLALSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
