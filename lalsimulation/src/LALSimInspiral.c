@@ -5692,7 +5692,7 @@ int XLALSimParityViolationEffect(
   if (f0 == 0.0)
       k=1;
 
-  if (parity_alpha == 1) 
+  if (parity_alpha == 1) {
     tempVal =  LAL_H_SI * LAL_PI * LAL_PI * r / parity_lambdatilt; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
       f = f0 + i*df;
@@ -5704,6 +5704,7 @@ int XLALSimParityViolationEffect(
       (*hptilde)->data->data[i] = hplus;
       (*hctilde)->data->data[i] = hcross;
     }
+   }
   else
     XLAL_ERROR(XLAL_EINVAL);
 
