@@ -1795,6 +1795,8 @@ int XLALSimInspiralChooseFDWaveform(
     if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
       if (XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams) != 0) 
         ret = XLALSimParityViolationEffect(hptilde, hctilde,distance, XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
+      if (XLAMSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)!=0)
+        ret = XLALSimParityViolationEffect(hptilde, hctilde,distance, pow(10, XLALSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 
@@ -5662,7 +5664,7 @@ int XLALSimParityViolationEffect(
                        REAL8 r,                            /**< distance in m, luminosity distance */
                        REAL8 parity_lambdatilt,             /**< Effective-field energy scale in ev, lambda_tilt = lambda * D_L / D_alpha */
                        INT4 parity_alpha                  /**< temporarily equals to 1 >*/
-    )
+                       )
 {
   REAL8 f0, f, df;
   COMPLEX16 hplus, hcross;
@@ -5691,7 +5693,7 @@ int XLALSimParityViolationEffect(
       k=1;
 
   if (parity_alpha == 1) 
-    tempVal =  LAL_H_SI * LAL_PI * LAL_PI * r / parity_lambdatilt;
+    tempVal =  LAL_H_SI * LAL_PI * LAL_PI * r / parity_lambdatilt; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
       f = f0 + i*df;
       deltaPhi1 = tempVal * f * f;
@@ -5701,7 +5703,10 @@ int XLALSimParityViolationEffect(
 
       (*hptilde)->data->data[i] = hplus;
       (*hctilde)->data->data[i] = hcross;
-  }
+    }
+  else
+    XLAL_ERROR(XLAL_EINVAL);
+
   return XLAL_SUCCESS;
 }
 

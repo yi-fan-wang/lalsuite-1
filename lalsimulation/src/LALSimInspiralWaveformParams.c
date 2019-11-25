@@ -137,6 +137,7 @@ DEFINE_INSERT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_INSERT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
 DEFINE_INSERT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_INSERT_FUNC(NonGRParityLambdaTilt, REAL8, "parity_lambdatilt", 0)
+DEFINE_INSERT_FUNC(NonGRParitylog10LambdaTilt, REAL8, "parity_log10lambdatilt", 0)
 DEFINE_INSERT_FUNC(NonGRParityAlpha, INT4, "parity_alpha", 0)
 
 /* NLTides parameters */
@@ -244,6 +245,7 @@ DEFINE_LOOKUP_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_LOOKUP_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
 DEFINE_LOOKUP_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_LOOKUP_FUNC(NonGRParityLambdaTilt, REAL8, "parity_lambdatilt", 0)
+DEFINE_LOOKUP_FUNC(NonGRParitylog10LambdaTilt, REAL8, "parity_log10lambdatilt", 0)
 DEFINE_LOOKUP_FUNC(NonGRParityAlpha, INT4, "parity_alpha", 0)
 
 /* NLTides parameters */
@@ -342,6 +344,7 @@ DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParityLambdaTilt, REAL8, "parity_lambdatilt", 0)
+DEFINE_ISDEFAULT_FUNC(NonGRParitylog10LambdaTilt, REAL8, "parity_log10lambdatilt", 0)
 /* SEOBNRv4P */
 DEFINE_ISDEFAULT_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
 
