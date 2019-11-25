@@ -276,8 +276,8 @@ int XLALSimInspiralWaveformParamsNonGRBetaPPE6IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRAlphaPPE7IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRBetaPPE7IsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRMassiveGravitonLambdaIsDefault(LALDict *params);
-int XLALSimInspiralWaveformParamsNonGRMassiveGravitonlog10LambdaIsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRParityLambdaTiltIsDefault(LALDict *params);
+int XLALSimInspiralWaveformParamsNonGRParitylog10LambdaTiltIsDefault(LALDict *params);
 /* SEOBNRv4P */
 INT4 XLALSimInspiralWaveformParamsEOBChooseNumOrAnalHamDerIsDefault(LALDict *params);
 
