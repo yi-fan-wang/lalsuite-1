@@ -1793,10 +1793,10 @@ int XLALSimInspiralChooseFDWaveform(
 
     // Add the parity violation terms
     if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
-      if (XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams) != 0) 
-        ret = XLALSimParityViolationEffect(hptilde, hctilde,XLALSimInspiralWaveformParamsLookupNonGRParityLambdaTilt(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
-      if (XLALSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)!=0)
-        ret = XLALSimParityViolationEffect(hptilde, hctilde,pow(10, XLALSimInspiralWaveformParamsLookupNonGRParitylog10LambdaTilt(LALparams)),XLALSimInspiralWaveformParamsLookupNonGRParityAlpha(LALparams));
+      if (XLALSimInspiralWaveformParamsLookupNonGRParityAeff(LALparams) != 0) 
+        ret = XLALSimParityViolationEffect(hptilde, hctilde,XLALSimInspiralWaveformParamsLookupNonGRParityAeff(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParitybeta(LALparams));
+      if (XLALSimInspiralWaveformParamsLookupNonGRParitylog10Aeff(LALparams)!=0)
+        ret = XLALSimParityViolationEffect(hptilde, hctilde,pow(10, XLALSimInspiralWaveformParamsLookupNonGRParitylog10Aeff(LALparams)),XLALSimInspiralWaveformParamsLookupNonGRParitybeta(LALparams));
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 
@@ -5661,8 +5661,8 @@ int XLALSimMassiveGravitonDispersionEffect(
 int XLALSimParityViolationEffect(
                        COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
                        COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
-                       REAL8 parity_lambdatilt,             /**< Effective-field energy scale in ev, lambda_tilt = lambda * D_L / D_alpha */
-                       INT4 parity_alpha                  /**< temporarily equals to 1 >*/
+                       REAL8 parity_Aeff,             /**< Effective-field energy scale in ev, lambda_tilt = lambda * D_L / D_alpha */
+                       INT4 parity_beta                 /**< temporarily equals to 1 >*/
                        )
 {
   REAL8 f0, f, df;
@@ -5691,11 +5691,11 @@ int XLALSimParityViolationEffect(
   if (f0 == 0.0)
       k=1;
 
-  if (parity_alpha == 1) {
-    tempVal =  LAL_H_SI * LAL_PI * LAL_PI / LAL_H0_SI / LAL_QE_SI / parity_lambdatilt ; // Dealing with the frequency dependence below
+  if (parity_beta != -1) {
+    tempVal =  parity_Aeff * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI / pow(LAL_QE_SI,parity_beta)  ; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
       f = f0 + i*df;
-      deltaPhi1 = tempVal * f * f;
+      deltaPhi1 = tempVal * pow(f, parity_beta + 1.0);
 
       hplus = (*hptilde)->data->data[i] + (*hctilde)->data->data[i] * deltaPhi1;
       hcross = (*hctilde)->data->data[i] - (*hptilde)->data->data[i] * deltaPhi1;
@@ -5704,7 +5704,20 @@ int XLALSimParityViolationEffect(
       (*hctilde)->data->data[i] = hcross;
     }
    }
-  else
+   else if (parity_beta == -1){
+    tempVal = parity_Aeff * LAL_QE_SI / 2.0 / LAL_HBAR_SI / LAL_H0_SI;
+    for (i=k; i<len; i++) {
+      f = f0 + i*df;
+      deltaPhi1 = tempVal ;
+
+      hplus = (*hptilde)->data->data[i] + (*hctilde)->data->data[i] * deltaPhi1;
+      hcross = (*hctilde)->data->data[i] - (*hptilde)->data->data[i] * deltaPhi1;
+
+      (*hptilde)->data->data[i] = hplus;
+      (*hctilde)->data->data[i] = hcross;
+    }
+   }
+   else
     XLAL_ERROR(XLAL_EINVAL);
 
   return XLAL_SUCCESS;

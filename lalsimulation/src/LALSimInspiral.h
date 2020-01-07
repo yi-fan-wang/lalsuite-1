@@ -509,7 +509,7 @@ int XLALSimInspiralFD(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeri
 int XLALSimInspiralChooseWaveform(REAL8TimeSeries **hplus, REAL8TimeSeries **hcross, const REAL8 m1, const REAL8 m2, const REAL8 s1x, const REAL8 s1y, const REAL8 s1z, const REAL8 s2x, const REAL8 s2y, const REAL8 s2z, const REAL8 inclination, const REAL8 phiRef, const REAL8 distance, const REAL8 longAscNodes, const REAL8 eccentricity, const REAL8 meanPerAno, const REAL8 deltaT, const REAL8 f_min, const REAL8 f_ref, LALDict *LALpars, const Approximant approximant);
 
 int XLALSimMassiveGravitonDispersionEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,  REAL8 m1, REAL8 m2, REAL8 r, REAL8 lambda_g);
-int XLALSimParityViolationEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,REAL8 parity_lambdatilt,INT4 parity_alpha);
+int XLALSimParityViolationEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,REAL8 parity_Aeff,INT4 parity_beta);
 /* DEPRECATED */
 
 /* general waveform switching mode generation routines */
