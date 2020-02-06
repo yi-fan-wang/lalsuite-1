@@ -249,8 +249,8 @@ DEFINE_LOOKUP_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_LOOKUP_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_phi", 0)
 DEFINE_LOOKUP_FUNC(NonGRParitylog10Aeff, REAL8, "parity_log10Aeff_phi", 0)
 DEFINE_LOOKUP_FUNC(NonGRParitybeta, INT4, "parity_beta_mu", 0)
-DEFINE_LOOKUP_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_amp", 0)
-DEFINE_LOOKUP_FUNC(NonGRParitybeta, INT4, "parity_beta_nu", 0)
+DEFINE_LOOKUP_FUNC(NonGRParityAh, REAL8, "parity_Aeff_amp", 0)
+DEFINE_LOOKUP_FUNC(NonGRParitybetanu, INT4, "parity_beta_nu", 0)
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -350,8 +350,8 @@ DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_phi", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParitylog10Aeff, REAL8, "parity_log10Aeff_phi", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParitybeta, REAL8, "parity_beta_mu", 0)
-DEFINE_ISDEFAULT_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_amp", 0)
-DEFINE_ISDEFAULT_FUNC(NonGRParitybeta, REAL8, "parity_beta_nu", 0)
+DEFINE_ISDEFAULT_FUNC(NonGRParityAh, REAL8, "parity_Aeff_amp", 0)
+DEFINE_ISDEFAULT_FUNC(NonGRParitybetanu, REAL8, "parity_beta_nu", 0)
 /* SEOBNRv4P */
 DEFINE_ISDEFAULT_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
 
