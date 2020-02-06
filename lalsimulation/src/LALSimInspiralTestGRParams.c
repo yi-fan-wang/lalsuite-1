@@ -232,7 +232,9 @@ int XLALSimInspiralWaveformParamsNonGRAreDefault(LALDict *params)
       && XLALSimInspiralWaveformParamsNonGRMassiveGravitonLambdaIsDefault(params)
       && XLALSimInspiralWaveformParamsNonGRParityAeffIsDefault(params)
       && XLALSimInspiralWaveformParamsNonGRParitylog10AeffIsDefault(params)
-      && XLALSimInspiralWaveformParamsNonGRParitybetaIsDefault(params));
+      && XLALSimInspiralWaveformParamsNonGRParitybetaIsDefault(params)
+      && XLALSimInspiralWaveformParamsNonGRParityAhIsDefault(params)
+      && XLALSimInspiralWaveformParamsNonGRParitybetanuIsDefault(params));
 }
 
 /** @} */

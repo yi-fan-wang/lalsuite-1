@@ -1797,7 +1797,9 @@ int XLALSimInspiralChooseFDWaveform(
         ret = XLALSimParityViolationEffect(hptilde, hctilde,XLALSimInspiralWaveformParamsLookupNonGRParityAeff(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParitybeta(LALparams));
       if (XLALSimInspiralWaveformParamsLookupNonGRParitylog10Aeff(LALparams)!=0)
         ret = XLALSimParityViolationEffect(hptilde, hctilde,pow(10, XLALSimInspiralWaveformParamsLookupNonGRParitylog10Aeff(LALparams)),XLALSimInspiralWaveformParamsLookupNonGRParitybeta(LALparams));
-      if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
+      if (XLALSimInspiralWaveformParamsLookupNonGRParityAh(LALparams) != 0) 
+        ret = XLALSimParityViolationEffectAmpBirefringence(hptilde, hctilde,XLALSimInspiralWaveformParamsLookupNonGRParityAh(LALparams),XLALSimInspiralWaveformParamsLookupNonGRParitybetanu(LALparams));
+    if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 
     //If polariz =0, then here is equivalent to the tgr_o2 branch, without doing anything.
@@ -5692,7 +5694,7 @@ int XLALSimParityViolationEffect(
       k=1;
 
   if (parity_beta != -1) {
-    tempVal =  parity_Aeff * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI / pow(LAL_QE_SI,parity_beta)  ; // Dealing with the frequency dependence below
+    tempVal =  pow(parity_Aeff,parity_beta) * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI / pow(LAL_QE_SI,parity_beta)  ; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
       f = f0 + i*df;
       deltaPhi1 = tempVal * pow(f, parity_beta + 1.0);
@@ -5719,6 +5721,54 @@ int XLALSimParityViolationEffect(
    }
    else
     XLAL_ERROR(XLAL_EINVAL);
+
+  return XLAL_SUCCESS;
+}
+
+int XLALSimParityViolationEffectAmpBirefringence(
+                       COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
+                       COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
+                       REAL8 parity_Aeff_amp,             /* */
+                       INT4 parity_beta_nu                 /* */
+                       )
+{
+  REAL8 f0, f, df;
+  COMPLEX16 hplus, hcross;
+  REAL8 deltah1, tempVal;
+  UINT4 len, i;
+  len = (*hptilde)->data->length;
+  if ((*hctilde)->data->length != len) {
+    XLALPrintError("Lengths of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EBADLEN);
+  }
+
+  f0 = (*hptilde)->f0;
+  if ((*hctilde)->f0 != f0) {
+    XLALPrintError("Starting frequencies of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  df = (*hptilde)->deltaF;
+  if ((*hctilde)->deltaF != df) {
+    XLALPrintError("Frequency steps of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  UINT4 k = 0;
+  if (f0 == 0.0)
+      k=1;
+
+  tempVal =  -0.5 * pow(2.0 * LAL_PI * LAL_HBAR_SI / LAL_QE_SI, parity_beta_nu) * pow(parity_Aeff_amp, parity_beta_nu) ; // Dealing with the frequency dependence below
+  for (i=k; i<len; i++) {
+      f = f0 + i*df;
+      deltah1 = tempVal * pow(f, parity_beta_nu);
+
+      hplus = (*hptilde)->data->data[i] - (*hctilde)->data->data[i] * I * deltah1;
+      hcross = (*hctilde)->data->data[i] + (*hptilde)->data->data[i] * I * deltah1;
+
+      (*hptilde)->data->data[i] = hplus;
+      (*hctilde)->data->data[i] = hcross;
+    }
 
   return XLAL_SUCCESS;
 }

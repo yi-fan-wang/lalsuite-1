@@ -510,6 +510,7 @@ int XLALSimInspiralChooseWaveform(REAL8TimeSeries **hplus, REAL8TimeSeries **hcr
 
 int XLALSimMassiveGravitonDispersionEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,  REAL8 m1, REAL8 m2, REAL8 r, REAL8 lambda_g);
 int XLALSimParityViolationEffect(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde,REAL8 parity_Aeff,INT4 parity_beta);
+int XLALSimParityViolationEffectAmpBirefringence(COMPLEX16FrequencySeries **hptilde, COMPLEX16FrequencySeries **hctilde, REAL8 parity_Aeff_amp,INT4 parity_beta_nu);
 /* DEPRECATED */
 
 /* general waveform switching mode generation routines */

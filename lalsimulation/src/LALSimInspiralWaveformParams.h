@@ -92,6 +92,8 @@ int XLALSimInspiralWaveformParamsInsertNonGRMassiveGravitonLambda(LALDict *param
 int XLALSimInspiralWaveformParamsInsertNonGRParityAeff(LALDict *params, REAL8 value);
 int XLALSimInspiralWaveformParamsInsertNonGRParitylog10Aeff(LALDict *params, REAL8 value);
 int XLALSimInspiralWaveformParamsInsertNonGRParitybeta(LALDict *params, INT4 value);
+int XLALSimInspiralWaveformParamsInsertNonGRParityAh(LALDict *params, REAL8 value);
+int XLALSimInspiralWaveformParamsInsertNonGRParitybetanu(LALDict *params, INT4 value);
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -186,6 +188,8 @@ REAL8 XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALDict *par
 REAL8 XLALSimInspiralWaveformParamsLookupNonGRParityAeff(LALDict *params);
 REAL8 XLALSimInspiralWaveformParamsLookupNonGRParitylog10Aeff(LALDict *params);
 INT4 XLALSimInspiralWaveformParamsLookupNonGRParitybeta(LALDict *params);
+REAL8 XLALSimInspiralWaveformParamsLookupNonGRParityAh(LALDict *params);
+INT4 XLALSimInspiralWaveformParamsLookupNonGRParitybetanu(LALDict *params);
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -279,6 +283,8 @@ int XLALSimInspiralWaveformParamsNonGRMassiveGravitonLambdaIsDefault(LALDict *pa
 int XLALSimInspiralWaveformParamsNonGRParityAeffIsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRParitylog10AeffIsDefault(LALDict *params);
 int XLALSimInspiralWaveformParamsNonGRParitybetaIsDefault(LALDict *params);
+int XLALSimInspiralWaveformParamsNonGRParityAhIsDefault(LALDict *params);
+int XLALSimInspiralWaveformParamsNonGRParitybetanuIsDefault(LALDict *params);
 /* SEOBNRv4P */
 INT4 XLALSimInspiralWaveformParamsEOBChooseNumOrAnalHamDerIsDefault(LALDict *params);
 
