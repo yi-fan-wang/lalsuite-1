@@ -5758,7 +5758,7 @@ int XLALSimParityViolationEffectAmpBirefringence(
   if (f0 == 0.0)
       k=1;
 
-  tempVal =  -0.5 * pow(2.0 * LAL_PI * LAL_HBAR_SI / LAL_QE_SI, parity_beta_nu) * pow(parity_Aeff_amp, parity_beta_nu) ; // Dealing with the frequency dependence below
+  tempVal =  -0.5 * pow(2.0 * LAL_PI * LAL_HBAR_SI, parity_beta_nu) * parity_Aeff_amp ; // Dealing with the frequency dependence below
   for (i=k; i<len; i++) {
       f = f0 + i*df;
       deltah1 = tempVal * pow(f, parity_beta_nu);
