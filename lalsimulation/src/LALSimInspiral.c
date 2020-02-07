@@ -5694,7 +5694,7 @@ int XLALSimParityViolationEffect(
       k=1;
 
   if (parity_beta != -1) {
-    tempVal =  pow(parity_Aeff,parity_beta) * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI / pow(LAL_QE_SI,parity_beta)  ; // Dealing with the frequency dependence below
+    tempVal =  parity_Aeff * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
       f = f0 + i*df;
       deltaPhi1 = tempVal * pow(f, parity_beta + 1.0);
