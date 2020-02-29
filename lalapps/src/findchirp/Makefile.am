@@ -1,3 +1,4 @@
+BUILT_SOURCES =
 MOSTLYCLEANFILES =
 include $(top_srcdir)/gnuscripts/lalapps.am
 include $(top_srcdir)/gnuscripts/lalsuite_help2man.am
@@ -26,9 +27,6 @@ lalapps_chirplen_SOURCES = chirplen.c
 endif
 
 EXTRA_DIST = \
-	TestRandomBank.c \
-	TestRandomBank.h \
 	chirplen.c \
 	exc_resp.c \
-	snr_versus_totalmass.png \
 	$(END_OF_LIST)

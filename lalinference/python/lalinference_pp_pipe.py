@@ -3,17 +3,17 @@
 
 from __future__ import print_function
 
+import os
+import sys
+import uuid
+from optparse import OptionParser
+
+from six.moves.configparser import ConfigParser
+
+from glue import pipeline
+
 from lalinference import lalinference_pipe_utils as pipe_utils
 from lalinference.lalinference_pipe_utils import mkdirs
-from lalapps import inspiralutils
-from glue import pipeline
-import ConfigParser
-from optparse import OptionParser,OptionValueError
-import sys
-import ast
-import os
-import uuid
-
 
 usage=""" %prog [options] config.ini
 Setup a DAG to run an end-to-end lalinference test:
@@ -26,9 +26,6 @@ parser=OptionParser(usage)
 parser.add_option("-r","--run-path",default='./',action="store",type="string",help="Directory to run pipeline in (default: $PWD)",metavar="RUNDIR")
 parser.add_option("-p","--daglog-path",default=None,action="store",type="string",help="Path to directory to contain DAG log file. SHOULD BE LOCAL TO SUBMIT NODE",metavar="LOGDIR")
 parser.add_option("-I","--injections",default=None,action="store",type="string",help="Path to injection file, will bypass the prior-sampling stage",metavar="injections.xml")
-parser.add_option("-x", "--dax",action="store_true",default=False, help="Delete the ligo_data_find jobs and populate frame LFNs in the DAX")
-parser.add_option("-G", "--grid-site",action="store",type="string",metavar="SITE", help="Specify remote site in conjunction with --dax option. e.g. --grid-site=creamce for Bologna cluster.\
-Supported options are: creamce and local",default=None)
 parser.add_option('-N','--trials',action='store',type='int',metavar='NUM',help='Number of prior samples to analyse')
 
 
@@ -42,11 +39,11 @@ inifile=args[0]
 
 # Set up the configuration for the sub-dags
 
-prior_cp=ConfigParser.ConfigParser()
+prior_cp=ConfigParser()
 prior_cp.optionxform = str
 prior_cp.readfp(open(inifile))
 
-main_cp=ConfigParser.ConfigParser()
+main_cp=ConfigParser()
 main_cp.optionxform = str
 main_cp.readfp(open(inifile))
 
@@ -105,7 +102,7 @@ for option in 'margphi','margtime','margtimephi':
 
 # Create a DAG to contain the other scripts
 outerdaglog=os.path.join(daglogdir,'lalinference_injection_test_'+str(uuid.uuid1())+'.log')
-outerdag=pipeline.CondorDAG(outerdaglog,dax=opts.dax)
+outerdag=pipeline.CondorDAG(outerdaglog)
 outerdag.set_dag_file(os.path.join(rundir,'priortest'))
 
 # Run code with prior sampling
@@ -117,7 +114,7 @@ print('%i\n'%(trig_time), file=tfile)
 tfile.close()
 prior_cp.set('input','gps-time-file',tfpath)
 
-priordag=pipe_utils.LALInferencePipelineDAG(prior_cp,dax=opts.dax,site=opts.grid_site)
+priordag=pipe_utils.LALInferencePipelineDAG(prior_cp)
 priordag.set_dag_file(os.path.join(priordir,'lalinference_priorsample'))
 priordagjob=pipeline.CondorDAGManJob(priordag.get_dag_file(),dir=priordir)
 priordagnode=pipeline.CondorDAGManNode(priordagjob)
@@ -159,7 +156,7 @@ prior2injnode.add_parent(priordagnode)
 #main_cp.set('input','injection-file',injfile)
 main_cp.set('input','gps-start-time',str(trig_time-1000))
 main_cp.set('input','gps-end-time',str(trig_time+1000))
-maindag=pipe_utils.LALInferencePipelineDAG(main_cp,dax=opts.dax,site=opts.grid_site)
+maindag=pipe_utils.LALInferencePipelineDAG(main_cp)
 maindag.set_dag_file(os.path.join(maindir,'lalinference_pipeline'))
 maindagjob=pipeline.CondorDAGManJob(maindag.get_dag_file(),dir=maindir)
 maindagnode=pipeline.CondorDAGManNode(maindagjob)
@@ -167,20 +164,6 @@ maindag.config.set('input','injection-file',injfile)
 for i in range(int(opts.trials)):
   ev=pipe_utils.Event(trig_time=trig_time,event_id=i)
   e=maindag.add_full_analysis(ev)
-
-skyarea=False
-if main_cp.has_option('condor','skyarea') and main_cp.has_option('condor','processareas'):
-  skyarea=True
-
-skyoutdir=None
-if skyarea:
-  print("adding sky_area")
-  if main_cp.has_option('ppanalysis','webdir'):
-    outdir=main_cp.get('ppanalysis','webdir')
-  else:
-    outdir=os.path.join(rundir,'ppanalysis')
-  skyoutdir=os.path.join(outdir,'sky_pp')
-  maindag.add_skyarea_followup()
 
 outerdag.add_node(maindagnode)
 
@@ -192,29 +175,6 @@ if not opts.injections:
 # Get a list of posterior samples files
 resultspagenodes=filter(lambda n: isinstance(n, pipe_utils.ResultsPageNode), maindag.get_nodes())
 posteriorfiles=[n.get_pos_file() for n in resultspagenodes]
-
-## add job for 2D skyarea PP plots
-if skyarea:
-  sasub=os.path.join(rundir,'processareas.sub')
-  saerr=os.path.join(outerlogdir,'processareas-$(cluster)-$(process)-$(node).err')
-  saout=os.path.join(outerlogdir,'processareas-$(cluster)-$(process)-$(node).out')
-  saexe=prior_cp.get('condor','processareas')
-  sajob=pipeline.CondorDAGJob('vanilla',saexe)
-  sajob.set_sub_file(sasub)
-  sajob.set_stderr_file(saerr)
-  sajob.set_stdout_file(saout)
-  sajob.add_condor_cmd('getenv','True')
-  if main_cp.has_option('condor','accounting_group'):
-    sajob.add_condor_cmd('accounting_group',main_cp.get('condor','accounting_group'))
-
-  sanode=pipeline.CondorDAGNode(sajob)
-  sanode.add_var_opt('prefix',skyoutdir)
-  mkdirs(skyoutdir)
-  for f in posteriorfiles:
-    f=f.replace('posterior_samples.dat','areas.dat')
-    sanode.add_var_arg(f)
-  sanode.add_parent(maindagnode)
-  outerdag.add_node(sanode)
 
 # Analyse results of injection runs to generate PP plot
 ppsub=os.path.join(rundir,'ppanalysis.sub')
@@ -241,34 +201,12 @@ ppnode.add_var_opt('outdir',outdir)
 for f in posteriorfiles:
   ppnode.add_var_arg(f)
 
-if skyarea:
-  ppnode.add_var_opt('skyPPfolder',os.path.realpath(skyoutdir))
-  ppnode.add_parent(sanode)
-
 ppnode.add_parent(maindagnode)
 outerdag.add_node(ppnode)
 
-if(opts.dax):
-# Create a text file with the frames listed
-   pfnfile = outerdag.create_frame_pfn_file()
-   peg_frame_cache = inspiralutils.create_pegasus_cache_file(pfnfile)
-else:
-   peg_frame_cache = '/dev/null'
-
-import uuid
-execdir=os.path.join(daglogdir,'lalinference_pegasus_'+str(uuid.uuid1()))
-olddir=os.getcwd()
-if opts.grid_site is not None:
-    site='local,'+opts.grid_site
-else:
-    site=None
-# Create the DAX scripts
-if opts.dax:
-  dag.prepare_dax(tmp_exec_dir=execdir,grid_site=site,peg_frame_cache=peg_frame_cache)
 outerdag.write_sub_files()
 outerdag.write_dag()
 outerdag.write_script()
-#os.chdir(olddir)
 
 if not opts.injections:
     priordag.write_sub_files()

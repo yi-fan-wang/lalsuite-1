@@ -22,6 +22,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+import sys
 from six.moves import range
 from functools import reduce
 
@@ -33,13 +34,10 @@ import astropy.table as apt
 import scipy.integrate as si
 from optparse import OptionParser
 
-import h5py
 from lalinference import git_version
 from lalinference import bayespputils as bppu
-from lalinference.io import read_samples, write_samples
+from lalinference.io import read_samples, write_samples, extract_metadata
 
-from lalinference import LALINFERENCE_PARAM_LINEAR as LINEAR
-from lalinference import LALINFERENCE_PARAM_CIRCULAR as CIRCULAR
 from lalinference import LALINFERENCE_PARAM_FIXED as FIXED
 from lalinference import LALINFERENCE_PARAM_OUTPUT as OUTPUT
 
@@ -215,7 +213,6 @@ def weight_and_combine(pos_chains, verbose=False):
 	metadata[run_level]['log_evidence'] = final_log_evidence
 	metadata[run_level]['log_noise_evidence'] = final_log_noise_evidence
 	metadata[run_level]['log_max_likelihood'] = final_posterior['logl'].max()
-
 	# This has already been burned-in and downsampled,
 	# remove the cycle column to stop cbcBayesPosProc
 	# from doing it again.
@@ -274,5 +271,23 @@ if __name__ == '__main__':
 
 	final_posterior, metadata = weight_and_combine(chain_posteriors, verbose=opts.verbose)
 
+	for path in datafiles:
+		run_identifier = extract_metadata(path, metadata)
+
+	# Remove duplicate metadata
+	path_to_samples = '/'.join(['','lalinference',run_identifier,'posterior_samples'])
+	if path_to_samples in metadata:
+		for colname in final_posterior.columns:
+			metadata[path_to_samples].pop(colname, None)
+
+	# for metadata which is in a list, take the average.
+	for level in metadata:
+		for key in metadata[level]:
+			#if isinstance(metadata[level][key], list) and all(isinstance(x, (int,float)) for x in metadata[level][key]):
+			#    metadata[level][key] = mean(metadata[level][key])
+			if isinstance(metadata[level][key], list) and all(isinstance(x, (str)) for x in metadata[level][key]):
+				print("Warning: only printing the first of the %d entries found for metadata %s/%s. You can find the whole list in the headers of individual hdf5 output files\n"%(len(metadata[level][key]),level,key))
+				metadata[level][key] = metadata[level][key][0]
+
 	write_samples(final_posterior, opts.pos,
-		path='/'.join(['','lalinference','lalinference_mcmc','posterior_samples']), metadata=metadata)
+		path=path_to_samples, metadata=metadata)

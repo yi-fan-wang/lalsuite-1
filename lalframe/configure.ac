@@ -1,7 +1,7 @@
 AC_PREREQ([2.63])
-AC_INIT([LALFrame],[1.4.5.1],[lal-discuss@ligo.org])
-AC_CONFIG_HEADERS([src/config.h src/LALFrameConfig.h])
-AC_CONFIG_SRCDIR([src/LALFrameIO.c])
+AC_INIT([LALFrame],[1.5.0.1],[lal-discuss@ligo.org])
+AC_CONFIG_HEADERS([lib/config.h lib/LALFrameConfig.h])
+AC_CONFIG_SRCDIR([lib/LALFrameIO.c])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
 AC_CONFIG_FILES([ \
@@ -18,13 +18,14 @@ AC_CONFIG_FILES([ \
   python/lalframe/Makefile \
   python/lalframe/__init__.py \
   python/lalframe/utils/Makefile \
-  src/LALFrameVCSInfo.c \
-  src/LALFrameVCSInfo.h \
-  src/Makefile \
-  src/version.c \
+  lib/LALFrameVCSInfo.c \
+  lib/LALFrameVCSInfo.h \
+  lib/Makefile \
+  lib/version.c \
   swig/Makefile \
   test/Makefile \
   test/python/Makefile \
+  test/python/test_python_imports.py \
 ])
 AM_INIT_AUTOMAKE([ \
   1.11 \
@@ -38,7 +39,7 @@ AM_INIT_AUTOMAKE([ \
 ])
 
 # version requirements
-MIN_LAL_VERSION="6.20.0"
+MIN_LAL_VERSION="6.21.0"
 MIN_FRAMECPPC_VERSION="2.5.5"
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_FRAMECPPC_VERSION])
@@ -64,8 +65,8 @@ LALSUITE_DISTCHECK_CONFIGURE_FLAGS
 #    then increment age.
 # 6. if any interfaces have been removed since the last public release,
 #    then set age to 0.
-AC_SUBST([LIBCURRENT],[10])
-AC_SUBST([LIBREVISION],[3])
+AC_SUBST([LIBCURRENT],[11])
+AC_SUBST([LIBREVISION],[0])
 AC_SUBST([LIBAGE],[0])
 AC_SUBST([LIBVERSION],[${LIBCURRENT}:${LIBREVISION}:${LIBAGE}])
 
@@ -89,9 +90,6 @@ LALSUITE_ENABLE_DOXYGEN
 
 # define version/configure info
 LALSUITE_VERSION_CONFIGURE_INFO
-
-# workaround broken libtool multilib support on sl6
-LALSUITE_MULTILIB_LIBTOOL_HACK
 
 # use silent build rules
 AM_SILENT_RULES([yes])
@@ -186,7 +184,7 @@ LALSUITE_USE_DOXYGEN
 LALSUITE_ADD_GCC_FLAGS
 
 # link any executables against LALFrame library
-AC_SUBST([LDADD], ["\$(top_builddir)/src/liblalframe.la"])
+AC_SUBST([LDADD], ["\$(top_builddir)/lib/liblalframe.la"])
 
 # add extra preprocessor flags
 AM_CPPFLAGS="-DPKG_DATA_DIR='\"\$(pkgdatadir)/\"' ${AM_CPPFLAGS}"

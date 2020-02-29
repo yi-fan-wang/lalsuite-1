@@ -16,17 +16,13 @@ ${SRC_DIR}/configure \
 	--prefix=${PREFIX} \
 	--enable-cfitsio \
 	--enable-help2man \
-	--enable-openmp \
-	--enable-mpi \
-	MPICC=${PREFIX}/bin/mpicc \
-	MPICXX=${PREFIX}/bin/mpicxx \
-	MPIFC=${PREFIX}/bin/mpifc
+	--enable-openmp
 
 # build
 make -j ${CPU_COUNT}
 
 # check
-make -j ${CPU_COUNT} check
+make -j ${CPU_COUNT} check SKIP_TESTS_THAT_FAIL_UNDER_CONDA=1
 
 # install
 make -j ${CPU_COUNT} install

@@ -4,7 +4,6 @@ from __future__ import division
 
 import numpy as np
 import os
-from matplotlib.lines import Line2D
 
 __all__=('make_disk_plot',)
 
@@ -24,7 +23,7 @@ def make_disk_plot(post,outpath=None):
 
 
   try:
-    import corner
+    import corner  # noqa: F401
   except ImportError:
     print("cannot import corner. Won't plot spin disk")
     return None
@@ -35,7 +34,7 @@ def make_disk_plot(post,outpath=None):
   tilt2='tilt2'
 
   names=post.names
-  
+
   if not set([a1,a2,tilt1,tilt2]).issubset(names):
     print("Cannot plot spin disk plot. Not all required spin parameters exist in the posterior file. Skipping...\n")
     return None
@@ -51,8 +50,11 @@ def make_disk_plot(post,outpath=None):
   for a, tilt in zip([a1, a2], [tilt1, tilt2]):
       asamps=(post[a].samples).flatten()
       tsamps=(post[tilt].samples).flatten()
-      
-      H, _, _ = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), density=True)
+      try:
+          H, _, _ = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), density=True)
+      except TypeError:
+          # numpy < 1.15 uses normed instead of density
+          H, _, _ = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), normed=True)
       vmax = H.max() if H.max() > vmax else vmax
 
   # Make the plots
@@ -60,7 +62,12 @@ def make_disk_plot(post,outpath=None):
       asamps=(post[a].samples).flatten()
       tsamps=(post[tilt].samples).flatten()
       plt.sca(ax)
-      H, rs, costs = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), density=True)
+      try:
+          H, rs, costs = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), density=True)
+      except TypeError:
+          # numpy < 1.15 uses normed instead of density
+          H, rs, costs = np.histogram2d(asamps, np.cos(tsamps), range=[[0, 1], [-1, 1]], bins=(Na, Nt), normed=True)
+
       COSTS, RS = np.meshgrid(costs, rs)
       X = RS * np.sin(np.arccos(COSTS))
       Y = RS * COSTS

@@ -114,7 +114,7 @@ except ImportError:
     raise ImportError("SWIG wrappings of LALPulsar cannot be imported")
 
 try:
-    from lalpulsar.PulsarParametersWrapper import PulsarParametersPy
+    from .PulsarParametersWrapper import PulsarParametersPy
 except ImportError:
     raise ImportError("Cannot import PulsarParametersPy class")
 
@@ -126,10 +126,10 @@ __version__ = git_version.id
 __date__ = git_version.date
 
 
-DOWNLOAD_URL = 'https://git.ligo.org/lscsoft/lalsuite/raw/master/lalpulsar/src/{}'
+DOWNLOAD_URL = 'https://git.ligo.org/lscsoft/lalsuite/raw/master/lalpulsar/lib/{}'
 
 class HeterodynedCWSimulator(object):
-    
+
     def __init__(self, par, det, times=None, earth_ephem=None,
                  sun_ephem=None, time_corr=None, ephem='DE405', units='TCB',
                  t0=None, dt=None):
@@ -152,7 +152,7 @@ class HeterodynedCWSimulator(object):
         @param dt: the time steps (in seconds) in the data over which to
             average the detector response. If not given and @b times is set,
             the the time difference between the first two values in @b times
-            will be used. 
+            will be used.
         @param earth_ephem: a file containing the Earth ephemeris information.
             If not set then a default file will be used.
         @param sun_ephem: a file containing the Earth ephemeris information.
@@ -314,7 +314,7 @@ class HeterodynedCWSimulator(object):
             raise TypeError("Unknown data type for times")
 
         self.__gpstimes = lalpulsar.CreateTimestampVector(len(self.__times))
-        for i, time in enumerate(self.__times): 
+        for i, time in enumerate(self.__times):
             self.__gpstimes.data[i] = lal.LIGOTimeGPS(time)
 
     @property

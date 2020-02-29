@@ -1,7 +1,7 @@
 AC_PREREQ([2.63])
-AC_INIT([LALInference],[1.11.3.1],[lal-discuss@ligo.org])
-AC_CONFIG_HEADERS([src/config.h src/LALInferenceConfig.h])
-AC_CONFIG_SRCDIR([src/LALInference.h])
+AC_INIT([LALInference],[1.11.5.1],[lal-discuss@ligo.org])
+AC_CONFIG_HEADERS([lib/config.h lib/LALInferenceConfig.h])
+AC_CONFIG_SRCDIR([lib/LALInference.h])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
 AC_CONFIG_FILES([ \
@@ -21,16 +21,17 @@ AC_CONFIG_FILES([ \
   python/lalinference/imrtgr/Makefile \
   python/lalinference/io/Makefile \
   python/lalinference/plot/Makefile \
-  python/lalinference/rapid_pe/Makefile \
   python/lalinference/tiger/Makefile \
   python/lalinference/util/Makefile \
-  src/LALInferenceVCSInfo.c \
-  src/LALInferenceVCSInfo.h \
-  src/Makefile \
-  src/version.c \
+  lib/LALInferenceVCSInfo.c \
+  lib/LALInferenceVCSInfo.h \
+  lib/Makefile \
+  lib/mpi/Makefile \
+  lib/version.c \
   swig/Makefile \
   test/Makefile \
-  test/python/Makefile
+  test/python/Makefile \
+  test/python/test_python_imports.py \
 ])
 AC_USE_SYSTEM_EXTENSIONS
 AM_INIT_AUTOMAKE([ \
@@ -46,13 +47,13 @@ AM_INIT_AUTOMAKE([ \
 
 # version requirements
 MIN_GLUE_VERSION="1.54.1"
-MIN_LAL_VERSION="6.19.2"
-MIN_LALMETAIO_VERSION="1.5.0"
-MIN_LALFRAME_VERSION="1.4.0"
-MIN_LALSIMULATION_VERSION="1.8.2"
-MIN_LALBURST_VERSION="1.5.1"
-MIN_LALINSPIRAL_VERSION="1.8.1"
-MIN_LALPULSAR_VERSION="1.17.1"
+MIN_LAL_VERSION="6.21.0"
+MIN_LALMETAIO_VERSION="1.6.0"
+MIN_LALFRAME_VERSION="1.5.0"
+MIN_LALSIMULATION_VERSION="1.10.0"
+MIN_LALBURST_VERSION="1.5.3"
+MIN_LALINSPIRAL_VERSION="1.10.0"
+MIN_LALPULSAR_VERSION="1.18.2"
 AC_SUBST([MIN_GLUE_VERSION])
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_LALMETAIO_VERSION])
@@ -83,13 +84,16 @@ LALSUITE_DISTCHECK_CONFIGURE_FLAGS
 #    then increment age.
 # 6. if any interfaces have been removed since the last public release,
 #    then set age to 0.
-AC_SUBST([LIBCURRENT],[19])
-AC_SUBST([LIBREVISION],[0])
-AC_SUBST([LIBAGE],[2])
+AC_SUBST([LIBCURRENT],[20])
+AC_SUBST([LIBREVISION],[1])
+AC_SUBST([LIBAGE],[3])
 AC_SUBST([LIBVERSION],[${LIBCURRENT}:${LIBREVISION}:${LIBAGE}])
 
 # nightly build
 LALSUITE_ENABLE_NIGHTLY
+
+# enable MPI compilation
+LALSUITE_ENABLE_MPI
 
 # enable strict gcc flags
 LALSUITE_ENABLE_GCC_FLAGS
@@ -113,14 +117,28 @@ LALSUITE_ENABLE_HELP2MAN
 # define version/configure info
 LALSUITE_VERSION_CONFIGURE_INFO
 
-# workaround broken libtool multilib support on sl6
-LALSUITE_MULTILIB_LIBTOOL_HACK
-
 # use silent build rules
 AM_SILENT_RULES([yes])
 
 # check for required compilers
 LALSUITE_PROG_COMPILERS
+
+# check for MPI compilers
+bambimpi=false
+if test "x$mpi" = "xtrue"; then
+  AX_MPI([mpi=true],[mpi=false])
+  AS_IF([test "$bambi" = "true"], [
+    MPILIBS_SAVE="${MPILIBS}"
+    AC_LANG([C++])
+    AX_MPI([bambimpi=true],[])
+    AC_LANG([Fortran])
+    AX_MPI([],[bambimpi=false])
+    AC_LANG([C])
+    MPILIBS="${MPILIBS_SAVE}"
+  ])
+  AC_LANG([C])
+fi
+LALSUITE_ENABLE_MODULE([MPI])
 
 # checks for programs
 AC_PROG_INSTALL
@@ -166,28 +184,6 @@ LALSUITE_ENABLE_FAST_GSL
 # check for gsl headers
 AC_CHECK_HEADERS([gsl/gsl_errno.h],,[AC_MSG_ERROR([could not find the gsl/gsl_errno.h header])])
 
-# metaio
-PKG_CHECK_MODULES([METAIO],[libmetaio],[true],[false])
-LALSUITE_ADD_FLAGS([C],[${METAIO_CFLAGS}],[${METAIO_LIBS}])
-AC_CHECK_LIB([metaio],[MetaioOpen],,[AC_MSG_ERROR([could not find the metaio library])])
-
-# check for libmetaio headers
-AC_CHECK_HEADERS([metaio.h],,[AC_MSG_ERROR([could not find the metaio.h header])])
-
-# check for hdf5 support
-HDF5_ENABLE_VAL="DISABLED"
-# Note that AX_LIB_HDF5 uses h5cc to determine compiler for configure tests.
-# Make sure that it uses the same compiler as we are using.
-# Otherwise the configure tests may fail if we are using icc.
-HDF5_CC="${CC}"; export HDF5_CC
-HDF5_CLINKER="${CC}"; export HDF5_CLINKER
-AX_LIB_HDF5()
-unset HDF5_CC
-unset HDF5_CLINKER
-if test "${with_hdf5}" != "yes"; then
-  AC_MSG_ERROR([could not find the HDF5 library])
-fi
-
 # check for lal libraries and headers
 LALSUITE_CHECK_LIB([LAL],[${MIN_LAL_VERSION}],[XLALPerror],[lal/XLALError.h])
 LALSUITE_CHECK_LIB([LALSupport],[${MIN_LAL_VERSION}],[XLALCacheImport],[lal/LALCache.h])
@@ -197,30 +193,6 @@ LALSUITE_CHECK_LIB([LALSimulation],[${MIN_LALSIMULATION_VERSION}],[XLALSimDetect
 LALSUITE_CHECK_LIB([LALInspiral],[${MIN_LALINSPIRAL_VERSION}],[LALInspiralParameterCalc],[lal/LALInspiral.h])
 LALSUITE_CHECK_LIB([LALPulsar],[${MIN_LALPULSAR_VERSION}],[XLALComputeFstat],[lal/ComputeFstat.h])
 LALSUITE_CHECK_LIB([LALBurst],[${MIN_LALBURST_VERSION}],[XLALEPSearch],[lal/EPSearch.h])
-
-dnl FIXME: This doesn't work in the top-level build, because it tries
-dnl to compile and link against LAL itself, which will not have been built yet.
-dnl
-dnl AC_MSG_CHECKING([if LAL was built with HDF5 support])
-dnl AC_RUN_IFELSE(
-dnl   [AC_LANG_PROGRAM(
-dnl     [
-dnl       #include <lal/H5FileIO.h>
-dnl       #include <lal/XLALError.h>
-dnl     ],
-dnl     [
-dnl       int ret;
-dnl       (void)XLALSetSilentErrorHandler();
-dnl       (void)XLALH5FileOpen(NULL, NULL);
-dnl       return xlalErrno != XLAL_EFAULT;
-dnl     ]
-dnl   )],
-dnl   [AC_MSG_RESULT([yes])],
-dnl   [
-dnl     AC_MSG_RESULT([no])
-dnl     AC_MSG_ERROR([LAL must be built with HDF5 support in order to build LALInference])
-dnl   ]
-dnl )
 
 # configure SWIG wrapping modules
 LALSUITE_USE_SWIG
@@ -232,7 +204,7 @@ LALSUITE_USE_DOXYGEN
 LALSUITE_ADD_GCC_FLAGS
 
 # link any executables against LALInference library
-AC_SUBST([LDADD], ["\$(top_builddir)/src/liblalinference.la"])
+AC_SUBST([LDADD], ["\$(top_builddir)/lib/liblalinference.la"])
 
 # add extra preprocessor flags
 AM_CPPFLAGS="-DPKG_DATA_DIR='\"\$(pkgdatadir)/\"' ${AM_CPPFLAGS}"
@@ -257,6 +229,7 @@ LALInference has now been successfully configured:
 * SWIG bindings for Python are $SWIG_BUILD_PYTHON_ENABLE_VAL
 * HEALPix is $HEALPIX_ENABLE_VAL
 * OpenMP acceleration is $OPENMP_ENABLE_VAL
+* MPI support is $MPI_ENABLE_VAL
 * Doxygen documentation is $DOXYGEN_ENABLE_VAL
 * help2man documentation is $HELP2MAN_ENABLE_VAL
 

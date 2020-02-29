@@ -20,12 +20,15 @@ the standalone ring code on LIGO data
 from __future__ import print_function
 
 
-import ConfigParser
 import itertools
 from optparse import OptionParser
 import os
 import sys
 import tempfile
+try:
+	from configparser import ConfigParser
+except ImportError:  # python < 3
+	from ConfigParser import ConfigParser
 
 
 from glue import pipeline
@@ -35,11 +38,9 @@ from ligo.lw.utils import segments as ligolw_segments
 from lal import LIGOTimeGPS
 from lal.utils import CacheEntry
 from lalburst import offsetvector
-from lalburst import timeslides
 from lalapps import cosmicstring
 from lalapps import power
 from ligo import segments
-from ligo.segments import utils as segmentsUtils
 
 __author__ = 'Xavier Siemens<siemens@gravity.phys.uwm.edu>'
 __date__ = '$Date$'
@@ -62,7 +63,7 @@ def parse_command_line():
 	)
 	parser.add_option("-f", "--config-file", metavar = "filename", help = "Use this configuration file (required).")
 	parser.add_option("-l", "--log-path", metavar = "path", help = "Make condor put log files in this directory (required).")
-	parser.add_option("--background-time-slides", metavar = "filename", action = "append", help = "Set the name of the file from which to obtain the time slide table for use in the background branch of the pipeline (required).  This option can be given multiple times to parallelize the background analysis across time slides.  You will want to make sure the time slide files have distinct vectors to not repeat the same analysis multiple times, and in particular you'll want to make sure only one of them has a zero-lag vector in it.") 
+	parser.add_option("--background-time-slides", metavar = "filename", action = "append", help = "Set the name of the file from which to obtain the time slide table for use in the background branch of the pipeline (required).  This option can be given multiple times to parallelize the background analysis across time slides.  You will want to make sure the time slide files have distinct vectors to not repeat the same analysis multiple times, and in particular you'll want to make sure only one of them has a zero-lag vector in it.")
 	parser.add_option("--injection-time-slides", metavar = "filename", help = "Set the name of the file from which to obtain the time slide table for use in the injection branch of the pipeline (required).")
 	parser.add_option("--segments-file", metavar = "filename", help = "Set the name of the LIGO Light-Weight XML file from which to obtain segment lists (required).  See ligolw_segments and ligolw_segment_query for more information on constructing an XML-format segments file.  See also --segments-name.")
 	parser.add_option("--segments-name", metavar = "name", default = "segments", help = "Set the name of the segment lists to retrieve from the segments file (default = \"segments\").  See also --segments-file.")
@@ -115,7 +116,7 @@ print(file=log_fh)
 # create the config parser object and read in the ini file
 #
 
-config_parser = ConfigParser.ConfigParser()
+config_parser = ConfigParser()
 config_parser.read(options.config_file)
 
 #
@@ -215,7 +216,7 @@ injection_seglists = segments.segmentlistdict()
 for filename in options.injection_time_slides:
 	cache_entry = CacheEntry(None, "INJ", None, "file://localhost" + os.path.abspath(filename))
 
-        injection_time_slides[cache_entry] = lsctables.TimeSlideTable.get_table(ligolw_utils.load_filename(filename, verbose = options.verbose, contenthandler = ligolw_segments.LIGOLWContentHandler)).as_dict().values()
+	injection_time_slides[cache_entry] = lsctables.TimeSlideTable.get_table(ligolw_utils.load_filename(filename, verbose = options.verbose, contenthandler = ligolw_segments.LIGOLWContentHandler)).as_dict().values()
 
 	for i in range(len(injection_time_slides[cache_entry])):
 		injection_time_slides[cache_entry][i] = offsetvector.offsetvector((instrument, LIGOTimeGPS(offset)) for instrument, offset in injection_time_slides[cache_entry][i].items())

@@ -1,5 +1,5 @@
 AC_PREREQ([2.63])
-AC_INIT([LALApps],[6.24.0.1],[lal-discuss@ligo.org])
+AC_INIT([LALApps],[6.25.1.1],[lal-discuss@ligo.org])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_SRCDIR([src/lalapps/lalapps.c])
 AC_CONFIG_AUX_DIR([gnuscripts])
@@ -17,8 +17,6 @@ AC_CONFIG_FILES([\
   src/frametools/Makefile \
   src/hwinjection/Makefile \
   src/inspiral/Makefile \
-  src/inspiral/posterior/Makefile \
-  src/inspiral/posterior/mpi/Makefile \
   src/lalapps/LALAppsVCSInfo.c \
   src/lalapps/LALAppsVCSInfo.h \
   src/lalapps/Makefile \
@@ -41,7 +39,6 @@ AC_CONFIG_FILES([\
   src/pulsar/Tools/Makefile \
   src/pulsar/TwoSpect/Makefile \
   src/pulsar/Weave/Makefile \
-  src/pulsar/Xray/Makefile \
   src/ring/Makefile \
   src/string/Makefile \
 ])
@@ -58,14 +55,14 @@ AM_INIT_AUTOMAKE([ \
 ])
 
 # version requirements
-MIN_LAL_VERSION="6.20.0"
-MIN_LALFRAME_VERSION="1.4.0"
-MIN_LALMETAIO_VERSION="1.5.0"
-MIN_LALSIMULATION_VERSION="1.9.0"
-MIN_LALBURST_VERSION="1.5.1"
-MIN_LALINSPIRAL_VERSION="1.9.0"
-MIN_LALPULSAR_VERSION="1.18.0"
-MIN_LALINFERENCE_VERSION="1.11.0"
+MIN_LAL_VERSION="6.21.0"
+MIN_LALFRAME_VERSION="1.5.0"
+MIN_LALMETAIO_VERSION="1.6.0"
+MIN_LALSIMULATION_VERSION="1.10.0"
+MIN_LALBURST_VERSION="1.5.3"
+MIN_LALINSPIRAL_VERSION="1.10.0"
+MIN_LALPULSAR_VERSION="1.18.2"
+MIN_LALINFERENCE_VERSION="1.11.4"
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_LALFRAME_VERSION])
 AC_SUBST([MIN_LALMETAIO_VERSION])
@@ -91,12 +88,8 @@ LALSUITE_ENABLE_NIGHTLY
 LALAPPS_ENABLE_CONDOR
 LALAPPS_ENABLE_STATIC_BINARIES
 
-LALAPPS_ENABLE_MPI
-LALAPPS_ENABLE_BAMBI
-
 LALAPPS_ENABLE_FFTW
 LALAPPS_ENABLE_FRAME
-LALAPPS_ENABLE_METAIO
 LALSUITE_ENABLE_CFITSIO
 LALAPPS_ENABLE_PSS
 LALAPPS_ENABLE_GDS
@@ -118,37 +111,11 @@ LALSUITE_ENABLE_HELP2MAN
 # define version/configure info
 LALSUITE_VERSION_CONFIGURE_INFO
 
-# workaround broken libtool multilib support on sl6
-LALSUITE_MULTILIB_LIBTOOL_HACK
-
 # use silent build rules
 AM_SILENT_RULES([yes])
 
-# enable Fortran and C++ compilers for BAMBI
-AS_IF([test "$bambi" = "true"], [
-  LALSUITE_REQUIRE_F77
-  LALSUITE_REQUIRE_CXX
-])
-
 # check for required compilers
 LALSUITE_PROG_COMPILERS
-
-# check for MPI compilers
-bambimpi=false
-if test "x$mpi" = "xtrue"; then
-  AX_MPI([mpi=true],[mpi=false])
-  AS_IF([test "$bambi" = "true"], [
-    MPILIBS_SAVE="${MPILIBS}"
-    AC_LANG([C++])
-    AX_MPI([bambimpi=true],[])
-    AC_LANG([Fortran])
-    AX_MPI([],[bambimpi=false])
-    AC_LANG([C])
-    MPILIBS="${MPILIBS_SAVE}"
-  ])
-  AC_LANG([C])
-fi
-LALSUITE_ENABLE_MODULE([MPI])
 
 # link tests using libtool
 if test "${static_binaries}" = "true"; then
@@ -266,30 +233,6 @@ if test "${frame}" = "true"; then
 fi
 LALSUITE_ENABLE_MODULE([FRAME])
 
-# check for libmetaio
-if test "${metaio}" = "true"; then
-  PKG_CHECK_MODULES([METAIO],[libmetaio],[true],[false])
-  lal_pre_metaio_LIBS="$LIBS"
-  LALSUITE_ADD_FLAGS([C],[],[${METAIO_LIBS}])
-  AC_SEARCH_LIBS([MetaioOpen],[metaio],,
-                 [AC_MSG_WARN([could not find the metaio library])]
-                 [metaio="false"]
-                 [lalmetaio="false"]
-                 [LIBS="$lal_pre_metaio_LIBS"])
-fi
-
-# check for libmetaio headers
-if test "${metaio}" = "true"; then
-  lal_pre_metaio_CPPFLAGS="$CPPFLAGS"
-  LALSUITE_ADD_FLAGS([C],[${METAIO_CFLAGS}],[])
-  AC_CHECK_HEADERS([metaio.h],,
-                   [AC_MSG_WARN([could not find the metaio.h header])]
-                   [metaio="false"]
-                   [lalmetaio="false"]
-                   [CPPFLAGS="$lal_pre_metaio_CPPFLAGS"])
-fi
-LALSUITE_ENABLE_MODULE([METAIO])
-
 # check for cfitsio
 LALSUITE_USE_CFITSIO
 
@@ -332,16 +275,6 @@ if test "${pss}" = "true"; then
 fi
 LALSUITE_ENABLE_MODULE([PSS])
 
-# check for libbambi
-# Note:  if done in AS_IF() then AC_REQUIRE'd checks are done when not wanted, causing problems
-BAMBI_ENABLE_VAL="DISABLED"
-hbf=false
-if test "$bambi" = "true"; then
-  LALAPPS_CHECK_BAMBI
-fi
-AM_CONDITIONAL([HAVE_BAMBI],[${hbf}])
-AM_CONDITIONAL([HAVE_BAMBI_MPI],[${bambimpi}])
-
 # check for lal libararies and headers
 LALSUITE_CHECK_LIB([LAL],[${MIN_LAL_VERSION}],[XLALPerror],[lal/XLALError.h])
 LALSUITE_CHECK_LIB([LALSupport],[${MIN_LAL_VERSION}],[XLALCacheImport],[lal/LALCache.h])
@@ -376,13 +309,7 @@ if test "${cuda}" = "true"; then
   AC_DEFINE([LALAPPS_CUDA_ENABLED],[1],[Define if using cuda library])
 fi
 
-# check for OpenMP
-LALSUITE_ENABLE_OPENMP
-
 LALSUITE_ADD_GCC_FLAGS
-
-# link any executables against LALApps library
-AC_SUBST([LDADD], ["\$(top_builddir)/src/lalapps/liblalapps.la"])
 
 # add extra preprocessor flags
 AM_CPPFLAGS="-DPKG_DATA_DIR='\"\$(pkgdatadir)/\"' ${AM_CPPFLAGS}"
@@ -395,12 +322,6 @@ AM_CPPFLAGS="-I\$(top_srcdir)/src ${AM_CPPFLAGS}"
 # RedHat-derived systems.
 AC_SUBST([pkgpythondir], ["\${pkgpyexecdir}"])
 
-# get the glue and pylal prefixes from the environment
-AC_SUBST([GLUE_PREFIX])
-AM_CONDITIONAL([HAVE_GLUE_PREFIX], [test ! -z "$GLUE_PREFIX"])
-AC_SUBST([PYLAL_PREFIX])
-AM_CONDITIONAL([HAVE_PYLAL_PREFIX], [test ! -z "$PYLAL_PREFIX"])
-
 # output
 AC_OUTPUT
 AC_MSG_NOTICE([
@@ -410,7 +331,6 @@ LALApps has now been successfully configured:
 * Python support is $PYTHON_ENABLE_VAL
 * FFTW library support is $FFTW_ENABLE_VAL
 * Frame library support is $FRAME_ENABLE_VAL
-* MetaIO library support is $METAIO_ENABLE_VAL
 * LALFrame library support is $LALFRAME_ENABLE_VAL
 * LALMetaIO library support is $LALMETAIO_ENABLE_VAL
 * LALSimulation library support is $LALSIMULATION_ENABLE_VAL
@@ -420,12 +340,9 @@ LALApps has now been successfully configured:
 * LALInference library support is $LALINFERENCE_ENABLE_VAL
 * CFITSIO library support is $CFITSIO_ENABLE_VAL
 * PSS library support is $PSS_ENABLE_VAL
-* BAMBI library support is $BAMBI_ENABLE_VAL
 * Condor support is $CONDOR_ENABLE_VAL
-* MPI support is $MPI_ENABLE_VAL
 * GDS support is $GDS_ENABLE_VAL
 * CUDA support is $CUDA_ENABLE_VAL
-* OpenMP acceleration is $OPENMP_ENABLE_VAL
 * Doxygen documentation is $DOXYGEN_ENABLE_VAL
 * help2man documentation is $HELP2MAN_ENABLE_VAL
 

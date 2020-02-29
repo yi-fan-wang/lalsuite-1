@@ -1,7 +1,7 @@
 AC_PREREQ([2.63])
-AC_INIT([LALInspiral],[1.9.0.1],[lal-discuss@ligo.org])
-AC_CONFIG_HEADERS([src/config.h src/LALInspiralConfig.h])
-AC_CONFIG_SRCDIR([src/LALInspiral.h])
+AC_INIT([LALInspiral],[1.10.0.1],[lal-discuss@ligo.org])
+AC_CONFIG_HEADERS([lib/config.h lib/LALInspiralConfig.h])
+AC_CONFIG_SRCDIR([lib/LALInspiral.h])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
 AC_CONFIG_FILES([ \
@@ -18,13 +18,14 @@ AC_CONFIG_FILES([ \
   python/lalinspiral/Makefile \
   python/lalinspiral/__init__.py \
   python/lalinspiral/sbank/Makefile \
-  src/LALInspiralVCSInfo.c \
-  src/LALInspiralVCSInfo.h \
-  src/Makefile \
-  src/version.c \
+  lib/LALInspiralVCSInfo.c \
+  lib/LALInspiralVCSInfo.h \
+  lib/Makefile \
+  lib/version.c \
   swig/Makefile \
   test/Makefile \
   test/python/Makefile \
+  test/python/test_python_imports.py \
 ])
 AM_INIT_AUTOMAKE([ \
   1.11 \
@@ -38,14 +39,16 @@ AM_INIT_AUTOMAKE([ \
 ])
 
 # version requirements
-MIN_LAL_VERSION="6.20.0"
-MIN_LALFRAME_VERSION="1.4.0"
-MIN_LALMETAIO_VERSION="1.5.0"
-MIN_LALSIMULATION_VERSION="1.9.0"
+MIN_LAL_VERSION="6.21.0"
+MIN_LALFRAME_VERSION="1.5.0"
+MIN_LALMETAIO_VERSION="1.6.0"
+MIN_LALSIMULATION_VERSION="1.10.0"
+MIN_LALBURST_VERSION="1.5.3"
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_LALFRAME_VERSION])
 AC_SUBST([MIN_LALMETAIO_VERSION])
 AC_SUBST([MIN_LALSIMULATION_VERSION])
+AC_SUBST([MIN_LALBURST_VERSION])
 
 AC_CANONICAL_HOST
 
@@ -68,7 +71,7 @@ LALSUITE_DISTCHECK_CONFIGURE_FLAGS
 #    then increment age.
 # 6. if any interfaces have been removed since the last public release,
 #    then set age to 0.
-AC_SUBST([LIBCURRENT],[14])
+AC_SUBST([LIBCURRENT],[15])
 AC_SUBST([LIBREVISION],[0])
 AC_SUBST([LIBAGE],[0])
 AC_SUBST([LIBVERSION],[${LIBCURRENT}:${LIBREVISION}:${LIBAGE}])
@@ -83,16 +86,13 @@ LALSUITE_ENABLE_GCC_FLAGS
 LALSUITE_ENABLE_SWIG
 
 # optional lal libraries
-LALSUITE_ENABLE_LALFRAME
+LALSUITE_ENABLE_LALBURST
 
 # enable Doxygen documentation
 LALSUITE_ENABLE_DOXYGEN
 
 # define version/configure info
 LALSUITE_VERSION_CONFIGURE_INFO
-
-# workaround broken libtool multilib support on sl6
-LALSUITE_MULTILIB_LIBTOOL_HACK
 
 # use silent build rules
 AM_SILENT_RULES([yes])
@@ -144,6 +144,12 @@ LALSUITE_CHECK_LIB([LALMetaIO],[${MIN_LALMETAIO_VERSION}],[XLALLIGOLwHasTable],[
 LALSUITE_CHECK_LIB([LALSimulation],[${MIN_LALSIMULATION_VERSION}],[XLALSimDetectorStrainREAL8TimeSeries],[lal/LALSimulation.h])
 LALSUITE_CHECK_LIB([LALFrame],[${MIN_LALFRAME_VERSION}],[LALFrOpen],[lal/LALFrameL.h])
 
+# check for lalburst if python is enabled
+AM_CONDITIONAL([LALBURST],[test "x${lalburst}" != "xfalse"])
+AM_COND_IF([HAVE_PYTHON],[
+  LALSUITE_CHECK_LIB([LALBurst],[${MIN_LALBURST_VERSION}],[XLALEPSearch],[lal/EPSearch.h])
+])
+
 # configure SWIG wrapping modules
 LALSUITE_USE_SWIG
 
@@ -154,7 +160,7 @@ LALSUITE_USE_DOXYGEN
 LALSUITE_ADD_GCC_FLAGS
 
 # link any executables against LALInspiral library
-AC_SUBST([LDADD], ["\$(top_builddir)/src/liblalinspiral.la"])
+AC_SUBST([LDADD], ["\$(top_builddir)/lib/liblalinspiral.la"])
 
 # add extra preprocessor flags
 AM_CPPFLAGS="-DPKG_DATA_DIR='\"\$(pkgdatadir)/\"' ${AM_CPPFLAGS}"

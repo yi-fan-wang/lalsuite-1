@@ -18,14 +18,19 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 9999
-  skip: true  # [win]
-  string: "{{ fft_impl }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
+  error_overdepending: true
+  error_overlinking: true
   ignore_run_exports:
     - blas
     # run_exports parsing for fftw is broken, so we ignore it
     # manually, for now
     - fftw
+  number: 9999
+  script_env:
+    # this is only needed in gitlab-ci
+    - fft_impl
+  skip: true  # [win]
+  string: "{{ fft_impl }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
 
 requirements:
   build:
@@ -33,7 +38,7 @@ requirements:
     - pkg-config >=0.18.0
     - make
     - bc
-    - swig >=3.0.7
+    - swig >=3.0.9
   host:
     - fftw * nompi*  # [fft_impl == "fftw"]
     - gsl
@@ -60,17 +65,21 @@ outputs:
   - name: python-lal
     script: install-python.sh
     build:
-      activate_in_script: True
-      string: "{{ fft_impl }}_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
+      error_overdepending: true
+      error_overlinking: true
       ignore_run_exports:
-        - blas
-        - mkl
+        # ignore run_exports from python's recipe
+        - python
+      script_env:
+        # this is only needed in gitlab-ci
+        - fft_impl
+      string: "{{ fft_impl }}_py{{ py }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}"
     requirements:
       build:
         - {{ compiler('c') }}
         - make
         - pkg-config >=0.18.0
-        - swig >=3.0.7
+        - swig >=3.0.9
       host:
         - gsl
         - {{ pin_subpackage('lal', exact=True) }}
@@ -87,6 +96,7 @@ outputs:
         - {{ pin_subpackage('lal', exact=True) }}
         - ligo-segments
         - lscsoft-glue
+        - mkl  # [fft_impl == "mkl"]
         - {{ pin_compatible('numpy') }}
         - python
         - python-dateutil
@@ -94,6 +104,15 @@ outputs:
         - six
         - zlib  # [linux]
     test:
+      requires:
+        - freezegun
+        - mock  # [py<33]
+        - pathlib  # [py<34]
+        - pytest >=4.0.0a0
+      source_files:
+        - test/python
+      commands:
+        - python -m pytest -rs -v --junit-xml=junit.xml test/python
       imports:
         - lal
         - lal.antenna
@@ -102,25 +121,25 @@ outputs:
         - lal.series
         - lal.utils
     about:
-      home: https://wiki.ligo.org/DASWG/LALSuite
-      doc_url: https://lscsoft.docs.ligo.org/lalsuite/lal/
-      dev_url: https://git.ligo.org/lscsoft/lalsuite/
-      license: GPLv3
-      license_family: GPL
-      license_file: COPYING
-      summary: LSC Algorithm Library
+      home: "https://wiki.ligo.org/Computing/LALSuite"
+      doc_url: "https://lscsoft.docs.ligo.org/lalsuite/lal/"
+      dev_url: "https://git.ligo.org/lscsoft/lalsuite/"
+      license: "GPL-2.0-or-later"
+      license_family: "GPL"
+      license_file: "COPYING"
+      summary: "LSC Algorithm Library"
       description: |
         The LSC Algorithm Library for gravitational wave data analysis.
         This package contains the Python bindings.
 
 about:
-  home: https://wiki.ligo.org/DASWG/LALSuite
-  doc_url: https://lscsoft.docs.ligo.org/lalsuite/lal/
-  dev_url: https://git.ligo.org/lscsoft/lalsuite/
-  license: GPLv3
-  license_family: GPL
-  license_file: COPYING
-  summary: LSC Algorithm Library
+  home: "https://wiki.ligo.org/DASWG/LALSuite"
+  doc_url: "https://lscsoft.docs.ligo.org/lalsuite/lal/"
+  dev_url: "https://git.ligo.org/lscsoft/lalsuite/"
+  license: "GPL-2.0-or-later"
+  license_family: "GPL"
+  license_file: "COPYING"
+  summary: "LSC Algorithm Library"
   description: |
     The LSC Algorithm Library for gravitational wave data analysis.
     This package contains the shared-object libraries needed to run

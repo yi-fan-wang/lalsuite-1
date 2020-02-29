@@ -1,7 +1,7 @@
 # -*- mode: autoconf; -*-
 # lalsuite_build.m4 - top level build macros
 #
-# serial 153
+# serial 157
 
 # restrict which LALSUITE_... patterns can appearing in output (./configure);
 # useful for debugging problems with unexpanded LALSUITE_... Autoconf macros
@@ -486,21 +486,6 @@ AC_DEFUN([LALSUITE_USE_LIBTOOL],[
   # end $0
 ])
 
-AC_DEFUN([LALSUITE_MULTILIB_LIBTOOL_HACK],[
-  # $0: libtool incorrectly determine library path on SL6
-  case "${host}" in
-    x86_64-*-linux-gnu*)
-      case `cat /etc/redhat-release 2> /dev/null` in
-        "Scientific Linux"*|"CentOS"*)
-          AC_MSG_NOTICE([hacking round broken libtool multilib support on RedHat systems])
-          lt_cv_sys_lib_dlsearch_path_spec="/lib64 /usr/lib64"
-          ;;
-      esac
-      ;;
-  esac
-  # end $0
-])
-
 AC_DEFUN([LALSUITE_DISTCHECK_CONFIGURE_FLAGS],[
   # $0: store configure flags for 'make distcheck'
   DISTCHECK_CONFIGURE_FLAGS=
@@ -780,9 +765,6 @@ AC_ARG_ENABLE(
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-lalframe) ;;
     esac
   ], [ lalframe=${all_lal:-true} ] )
-if test "$frame" = "false"; then
-  lalframe=false
-fi
 ])
 
 AC_DEFUN([LALSUITE_ENABLE_LALMETAIO],
@@ -796,9 +778,6 @@ AC_ARG_ENABLE(
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-lalmetaio) ;;
     esac
   ], [ lalmetaio=${all_lal:-true} ] )
-if test "$metaio" = "false"; then
-  lalmetaio=false
-fi
 ])
 
 AC_DEFUN([LALSUITE_ENABLE_LALSIMULATION],
@@ -825,12 +804,6 @@ AC_ARG_ENABLE(
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-lalburst) ;;
     esac
   ], [ lalburst=${all_lal:-true} ] )
-if test "$lalmetaio" = "false"; then
-  lalburst=false
-fi
-if test "$lalsimulation" = "false"; then
-  lalburst=false
-fi
 ])
 
 AC_DEFUN([LALSUITE_ENABLE_LALINSPIRAL],
@@ -844,15 +817,6 @@ AC_ARG_ENABLE(
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-lalinspiral) ;;
     esac
   ], [ lalinspiral=${all_lal:-true} ] )
-if test "$lalframe" = "false"; then
-  lalinspiral=false
-fi
-if test "$lalmetaio" = "false"; then
-  lalinspiral=false
-fi
-if test "$lalsimulation" = "false"; then
-  lalinspiral=false
-fi
 ])
 
 AC_DEFUN([LALSUITE_ENABLE_LALPULSAR],
@@ -879,18 +843,6 @@ AC_ARG_ENABLE(
       *) AC_MSG_ERROR(bad value ${enableval} for --enable-lalinference) ;;
     esac
   ], [ lalinference=${all_lal:-true} ] )
-if test "$lalmetaio" = "false"; then
-  lalinference=false
-fi
-if test "$lalframe" = "false"; then
-  lalinference=false
-fi
-if test "$lalinspiral" = "false"; then
-  lalinference=false
-fi
-if test "$lalpulsar" = "false"; then
-  lalinference=false
-fi
 ])
 
 AC_DEFUN([LALSUITE_ENABLE_LALAPPS],[
@@ -1473,4 +1425,16 @@ AC_DEFUN([LALSUITE_ENABLE_OPENMP],[
 
   LALSUITE_ENABLE_MODULE([OPENMP])
   # end $0
+])
+
+AC_DEFUN([LALSUITE_ENABLE_MPI],
+[AC_ARG_ENABLE(
+  [mpi],
+  AC_HELP_STRING([--enable-mpi],[compile using MPI for supported codes [default=no]]),
+  [ case "${enableval}" in
+      yes) mpi=true;;
+      no)  mpi=false;;
+      *) AC_MSG_ERROR(bad value ${enableval} for --enable-mpi) ;;
+    esac
+  ], [ mpi=false ] )
 ])
