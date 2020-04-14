@@ -87,6 +87,9 @@ static LALUnit strainSquaredPerHertzUnit = { 0, { 0, 0, 1, 0, 0, 2, 0}, { 0, 0, 
 /* prefix for noise psd files provided by LIGO-T1800044 */
 #define T1800545 "LIGO-T1800545-v1-"
 
+/* prefix for noise psd files provided by LIGO-T1800044 */
+#define T1500293 "LIGO-T1500293-v1-"
+
 /**
  * @addtogroup LALSimNoisePSD_c
  * @brief Routines to compute noise power spectral densities for
@@ -1552,6 +1555,26 @@ int XLALSimNoisePSDaLIGOAPlusDesignSensitivityT1800042(
 {
 	return XLALSimNoisePSDFromFile(psd, flow,
 		T1800042 "aLIGO_APLUS.txt");
+}
+
+/** @} */
+
+/**
+ * @name Noise PSDs from LIGO-T1500293
+ * @{
+ */
+
+/**
+ * Returns a frequency series psd with low frequency cutoff flow corresponding
+ * to the A+ configuration design sensitivity scenario in LIGO-T1800042.
+ */
+int XLALSimNoisePSDaLIGOVoyagerSensitivityT1500293(
+	REAL8FrequencySeries *psd,	/**< frequency series to be computed */
+	double flow 			/**< low frequency cutoff (Hz) */
+)
+{
+	return XLALSimNoisePSDFromFile(psd, flow,
+		T1500293 "Voyager.txt");
 }
 
 /** @} */
