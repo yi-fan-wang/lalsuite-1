@@ -2265,6 +2265,9 @@ int XLALSimInspiralChooseFDWaveform(
     if (!XLALSimInspiralWaveformParamsNonGRAreDefault(LALparams)) {
       if (XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams) != 0) 
         ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, distance, XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonLambda(LALparams));
+      // The mass of the massive graviton, in the unit of eV
+      if (XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonMass(LALparams) != 0) 
+        ret = XLALSimMassiveGravitonDispersionEffect(hptilde, hctilde, m1/LAL_MSUN_SI, m2/LAL_MSUN_SI, distance, LAL_H_SI*LAL_C_SI/LAL_QE_SI/XLALSimInspiralWaveformParamsLookupNonGRMassiveGravitonMass(LALparams));
       if (ret == XLAL_FAILURE) XLAL_ERROR(XLAL_EFUNC);  
     }
 
