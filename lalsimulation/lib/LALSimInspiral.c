@@ -6210,11 +6210,6 @@ int XLALSimInspiralApproximantAcceptTestGRParams(Approximant approx){
     case NRSur4d2s:
     case NRSur7dq2:
     case NRSur7dq4:
-    case NRHybSur3dq8:
-    case IMRPhenomXAS:
-    case IMRPhenomXHM:
-	case IMRPhenomXP:
-	case IMRPhenomXPHM:
     case NumApproximants:
       testGR_accept=LAL_SIM_INSPIRAL_NO_TESTGR_PARAMS;
       break;
@@ -6238,6 +6233,11 @@ int XLALSimInspiralApproximantAcceptTestGRParams(Approximant approx){
     case IMRPhenomHM:
     case IMRPhenomPv3:
     case IMRPhenomPv3HM:
+    case NRHybSur3dq8:
+    case IMRPhenomXAS:
+    case IMRPhenomXHM:
+    case IMRPhenomXP:
+    case IMRPhenomXPHM:
       testGR_accept=LAL_SIM_INSPIRAL_TESTGR_PARAMS;
       break;
     default:
