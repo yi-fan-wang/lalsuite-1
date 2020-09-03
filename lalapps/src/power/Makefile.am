@@ -30,12 +30,7 @@ pybin_scripts = \
 	lalapps_power_likelihood_pipe \
 	lalapps_power_pipe \
 	lalapps_power_plot_binjtf \
-	lalapps_power_plot_burca2 \
-	lalapps_power_plot_burst \
-	lalapps_power_plot_binj \
-	lalapps_power_plot_burca \
-	lalapps_power_veto
-pkgpython_PYTHON = power.py
+	lalapps_power_plot_binj
 endif
 
 pkgdata_DATA = power_pipe.ini

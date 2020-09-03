@@ -37,6 +37,10 @@ echo "mfd_fmin = $mfd_fmin"
 
 noiseSqrtSh=0
 
+# reference files in fe3d08fc7c81d72e9be2c4251f16346f886db3f7
+# were generated with old default number of running median bins
+RngMedWindow=50
+
 ## ------------------------------------------------------------
 
 if [ "$noiseSqrtSh" != 0 ]; then
@@ -68,7 +72,7 @@ mkdir $SFTdir_40h
 
 # build MFD_v4 command line
 mfd_CL=" --Alpha=$Alpha --Delta=$Delta --IFO=$IFO --Tsft=$Tsft --startTime=$startTime --duration=$duration --h0=$h0 --cosi=$cosi --psi=$psi --phi0=$phi0"
-mfd_CL="${mfd_CL} --fmin=$mfd_fmin --Band=$mfd_FreqBand --Freq=$Freq --outSFTbname=$SFTdir_40h/testSFT --f1dot=$f1dot --outSFTv1"
+mfd_CL="${mfd_CL} --fmin=$mfd_fmin --Band=$mfd_FreqBand --Freq=$Freq --outSFTbname=$SFTdir_40h --f1dot=$f1dot"
 if [ "$haveNoise" = true ]; then
     mfd_CL="$mfd_CL --noiseSqrtSh=$sqrtSh";
 fi
@@ -114,9 +118,9 @@ echo
 ## common arguments for grid types 0,1,2,3,6
 sky_CL="--Alpha=$Alpha --AlphaBand=$AlphaBand --dAlpha=$dAlpha --Delta=$Delta --DeltaBand=$DeltaBand --dDelta=$dDelta"
 spin_CL="--Freq=$Freq --FreqBand=$FreqBand --dFreq=$dFreq --f1dot=$f1dot --f1dotBand=$f1dotBand --df1dot=$df1dot"
-cfs_CL="--IFO=$IFO --DataFiles='${SFTdir_40h}/testSFT*' --TwoFthreshold=0 --Dterms=16 --FstatMethod=DemodOptC $extra_args"
+cfs_CL="--DataFiles='${SFTdir_40h}/*.sft' --TwoFthreshold=0 --Dterms=16 --FstatMethod=DemodOptC --RngMedWindow=$RngMedWindow $extra_args"
 if [ "$haveNoise" = false ]; then
-    cfs_CL="$cfs_CL --SignalOnly"
+    cfs_CL="$cfs_CL --assumeSqrtSX=1"
 fi
 
 ## ----- grid=0 : flat grid
@@ -171,7 +175,7 @@ fi
 
 ## --- grid=8 : lattice tiling grid, square parameter space
 echo "CFSv2 using gridType=8:"
-cmdline="$cfsv2_code --Alpha=6.1 --Delta=1.2 --Freq=100.4 --FreqBand=5e-4 --f1dot=-1e-10 --f1dotBand=1e-10 --DataFiles='${SFTdir_5d}/*.sft' --TwoFthreshold=0 --gridType=8 --metricMismatch=0.5 --outputFstat=./testCFSv2_grid8.dat"
+cmdline="$cfsv2_code --Alpha=6.1 --Delta=1.2 --Freq=100.4 --FreqBand=5e-4 --f1dot=-1e-10 --f1dotBand=1e-10 --DataFiles='${SFTdir_5d}/*.sft' --TwoFthreshold=0 --gridType=8 --metricMismatch=0.5 --outputFstat=./testCFSv2_grid8.dat --RngMedWindow=$RngMedWindow"
 echo $cmdline
 if ! eval $cmdline; then
     echo "Error.. something failed when running '$cmdline' ..."
@@ -180,7 +184,7 @@ fi
 
 ## --- grid=9 : lattice tiling grid, age-spindown-index parameter space
 echo "CFSv2 using gridType=9:"
-cmdline="$cfsv2_code --Alpha=6.1 --Delta=1.2 --Freq=100.4 --FreqBand=8e-5 --spindownAge=1e11 --minBraking=2 --maxBraking=5 --DataFiles='${SFTdir_5d}/*.sft' --TwoFthreshold=0 --gridType=9 --metricMismatch=0.5 --outputFstat=./testCFSv2_grid9.dat"
+cmdline="$cfsv2_code --Alpha=6.1 --Delta=1.2 --Freq=100.4 --FreqBand=8e-5 --spindownAge=1e11 --minBraking=2 --maxBraking=5 --DataFiles='${SFTdir_5d}/*.sft' --TwoFthreshold=0 --gridType=9 --metricMismatch=0.5 --outputFstat=./testCFSv2_grid9.dat --RngMedWindow=$RngMedWindow"
 echo $cmdline
 if ! eval $cmdline; then
     echo "Error.. something failed when running '$cmdline' ..."
@@ -193,11 +197,27 @@ echo " STEP 3: Compare to reference results: "
 echo "----------------------------------------------------------------------"
 echo
 
+# Some of the reference files in fe3d08fc7c81d72e9be2c4251f16346f886db3f7
+# were generated with old --SignalOnly flag which added +4 assuming no-noise SFTs.
+# This behaviour is no longer reproduced by the newer --assumeSqrtSX option,
+# but to make sure this is the only (and understood) difference from the old
+# reference results, we manually subtract that extra term here.
+awk_subtract4='{print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " ($7-4)}'
+
 for n in 0 1 2 3 6 8 9; do
 
     ## compare results
     echo "Comparing gridType=${n}:"
-    cmdline="$cmp_code -1 ./testCFSv2_grid${n}.dat -2 ./testCFSv2_grid${n}.dat.ref";
+    ref="./testCFSv2_grid${n}.dat.ref"
+    if grep -q 'SignalOnly=TRUE' $ref; then
+        cmdline="awk '/^[^%]/ $awk_subtract4' $ref > ${ref}minus4.dat"
+        if ! eval $cmdline; then
+            echo "OUCH... using awk to subtract 4 from reference results failed."
+        fi
+        cmdline="$cmp_code -1 ./testCFSv2_grid${n}.dat -2 ${ref}minus4.dat";
+    else
+        cmdline="$cmp_code -1 ./testCFSv2_grid${n}.dat -2 $ref";
+    fi
     echo $cmdline
     if ! eval $cmdline; then
         echo "OUCH... files differ. Something might be wrong..."

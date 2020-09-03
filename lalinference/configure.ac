@@ -1,11 +1,13 @@
 AC_PREREQ([2.63])
-AC_INIT([LALInference],[2.0.0.1],[lal-discuss@ligo.org])
+AC_INIT([LALInference],[2.0.3.1],[lal-discuss@ligo.org])
 AC_CONFIG_HEADERS([lib/config.h lib/LALInferenceConfig.h])
 AC_CONFIG_SRCDIR([lib/LALInference.h])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
 AC_CONFIG_FILES([ \
   Makefile \
+  conda/Makefile \
+  conda/meta.yaml.in \
   debian/Makefile \
   debian/control \
   doxygen/Makefile \
@@ -25,8 +27,9 @@ AC_CONFIG_FILES([ \
   lib/LALInferenceVCSInfo.c \
   lib/LALInferenceVCSInfo.h \
   lib/Makefile \
-  lib/mpi/Makefile \
-  lib/version.c \
+  bin/Makefile \
+  bin/mpi/Makefile \
+  bin/version.c \
   swig/Makefile \
   test/Makefile \
   test/python/Makefile \
@@ -47,13 +50,13 @@ AM_INIT_AUTOMAKE([ \
 
 # version requirements
 MIN_GLUE_VERSION="1.54.1"
-MIN_LAL_VERSION="6.21.0"
+MIN_LAL_VERSION="7.0.0"
 MIN_LALMETAIO_VERSION="1.6.0"
 MIN_LALFRAME_VERSION="1.5.0"
-MIN_LALSIMULATION_VERSION="2.0.0"
+MIN_LALSIMULATION_VERSION="2.1.0"
 MIN_LALBURST_VERSION="1.5.3"
 MIN_LALINSPIRAL_VERSION="1.10.0"
-MIN_LALPULSAR_VERSION="1.18.2"
+MIN_LALPULSAR_VERSION="2.0.0"
 AC_SUBST([MIN_GLUE_VERSION])
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_LALMETAIO_VERSION])
@@ -85,7 +88,7 @@ LALSUITE_DISTCHECK_CONFIGURE_FLAGS
 # 6. if any interfaces have been removed since the last public release,
 #    then set age to 0.
 AC_SUBST([LIBCURRENT],[21])
-AC_SUBST([LIBREVISION],[0])
+AC_SUBST([LIBREVISION],[2])
 AC_SUBST([LIBAGE],[0])
 AC_SUBST([LIBVERSION],[${LIBCURRENT}:${LIBREVISION}:${LIBAGE}])
 

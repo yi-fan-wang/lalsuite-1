@@ -276,6 +276,9 @@ assert((lal.swig_lal_test_copyin_array1(a1in, 2.5) == a1out).all())
 a2in = numpy.array([[3,2], [7,6], [12,10]], dtype=numpy.int32)
 a2out = a2in * 15
 assert((lal.swig_lal_test_copyin_array2(a2in, 15) == a2out).all())
+a3in = numpy.array([lal.LIGOTimeGPS(1234.5), lal.LIGOTimeGPS(678.9)])
+a3out = a3in * 3
+assert((lal.swig_lal_test_copyin_array3(a3in, 3) == a3out).all())
 try:
     lal.swig_lal_test_copyin_array1(numpy.array([0,0,0,0], dtype=numpy.double), 0)
     expected_exception = True
@@ -288,6 +291,9 @@ try:
 except:
     pass
 assert(not expected_exception)
+del a3in
+del a3out
+lal.CheckMemoryLeaks()
 print("PASSED fixed and dynamic arrays typemaps")
 
 ## check input views of string array structs
@@ -1212,7 +1218,9 @@ print("PASSED LALUnit operations")
 # determine what module the SWIG wrapped objects were in.
 #
 if lal.swig_version >= 0x030011:
-    print("checking pickle ...")
+
+    # check pickling
+    print("checking pickling (Python specific) ...")
     for datatype in ['INT2', 'INT4', 'INT8', 'UINT2', 'UINT4', 'UINT8',
                      'REAL4', 'REAL8', 'COMPLEX8', 'COMPLEX16']:
 
@@ -1243,7 +1251,38 @@ if lal.swig_version >= 0x030011:
         assert a.deltaT == b.deltaT
         assert a.sampleUnits == b.sampleUnits
         assert (a.data.data == b.data.data).all()
-    print("PASSED pickle")
+    print("PASSED pickling (Python specific)")
+
+# test Python dict to LALDict typemap
+print("checking Python dict to LALDict typemap (Python specific) ...")
+pydict = {
+    "str": "A string value",
+    "2-byte-unsigned:UINT2": 32767,
+    "4-byte-unsigned:UINT4": 123456,
+    "8-byte-unsigned:UINT8": 9223372036854775807,
+    "2-byte-signed:INT2": -32768,
+    "4-byte-signed:INT4": -123456,
+    "8-byte-signed:INT8": 9223372036854775807,
+    "single:REAL4": 987e6,
+    "double:REAL8": -543e-21,
+    "single complex:COMPLEX8": complex(987e6, -123e4),
+    "double complex:COMPLEX16": complex(-543e-21, 345e43)
+}
+laldict = lal.CreateDict()
+lal.DictInsertStringValue(laldict, "str", pydict["str"])
+lal.DictInsertUINT2Value(laldict, "2-byte-unsigned", pydict["2-byte-unsigned:UINT2"])
+lal.DictInsertUINT4Value(laldict, "4-byte-unsigned", pydict["4-byte-unsigned:UINT4"])
+lal.DictInsertUINT8Value(laldict, "8-byte-unsigned", pydict["8-byte-unsigned:UINT8"])
+lal.DictInsertINT2Value(laldict, "2-byte-signed", pydict["2-byte-signed:INT2"])
+lal.DictInsertINT4Value(laldict, "4-byte-signed", pydict["4-byte-signed:INT4"])
+lal.DictInsertINT8Value(laldict, "8-byte-signed", pydict["8-byte-signed:INT8"])
+lal.DictInsertREAL4Value(laldict, "single", pydict["single:REAL4"])
+lal.DictInsertREAL8Value(laldict, "double", pydict["double:REAL8"])
+lal.DictInsertCOMPLEX8Value(laldict, "single complex", pydict["single complex:COMPLEX8"])
+lal.DictInsertCOMPLEX16Value(laldict, "double complex", pydict["double complex:COMPLEX16"])
+lal.swig_lal_test_pydict_to_laldict(laldict)
+lal.swig_lal_test_pydict_to_laldict(pydict)
+print("PASSED Python dict to LALDict typemap (Python specific)")
 
 # passed all tests!
 print("PASSED all tests")

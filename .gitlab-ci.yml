@@ -74,7 +74,7 @@ cache:
   script:
     - ./00boot
     - ./configure --enable-doxygen --enable-swig
-    - make -j4 distcheck
+    - make -j4 VERBOSE=1 distcheck
   artifacts:
     reports:
       junit:
@@ -122,6 +122,7 @@ cache:
   artifacts:
     expire_in: 18h
     paths:
+      - "rpmbuild/BUILD/*/config.log"
       - "rpmbuild/BUILD/*/test-suite.log"
       - "rpmbuild/BUILD/*/test/test-suite.log"
       - "rpmbuild/BUILD/*/test/python/test-suite.log"
@@ -178,13 +179,16 @@ cache:
     - cd ${PACKAGE}-*/
     - dch -v ${VERSION}-1 -b 'Rebuilt automatically on git.ligo.org CI'
     # install build dependencies
-    - ${APT_GET} -q install devscripts
-    - mk-build-deps --tool "${APT_GET}" --install --remove
+    - mk-build-deps
+          --tool "${APT_GET} -o Debug::pkgProblemResolver=yes --no-install-recommends"
+          --install
+          --remove
     # build packages
     - debuild -us -uc -r
   artifacts:
     expire_in: 18h
     paths:
+      - ${CI_JOB_NAME%%:*}*/.pybuild/python*/build/config.log
       - ${CI_JOB_NAME%%:*}*/.pybuild/python*/build/test/test-suite.log
       - ${CI_JOB_NAME%%:*}*/.pybuild/python*/build/test/python/test-suite.log
       - ${CI_JOB_NAME%%:*}*.changes
@@ -211,18 +215,17 @@ cache:
   conda config --add channels conda-forge
   retry conda update -n base conda setuptools
   conda activate base
-  retry conda install -n base "conda-build!=3.18.10" conda-verify conda-forge-pinning
+  retry conda install -n base "conda-build!=3.18.10" conda-forge-pinning "conda-smithy>=3.7.5" conda-verify
   conda info --all
 
 .conda-build: &conda-build
   image: igwn/base:conda
   variables:
     CONDA_BLD_PATH: "${CI_PROJECT_DIR}/conda/bld"
+    CONDA_CONFIG: "linux_64_"
     CONDA_PKGS_DIRS: "${CI_PROJECT_DIR}/conda/pkgs"
-    fft_impl: "fftw"
-    PYTHON_VERSION: "3.7"
+    GIT_STRATEGY: none
   before_script:
-    - set -x  # print commands as they are run (helps debugging)
     - *define-retry
     - *conda-init
   script:
@@ -230,22 +233,27 @@ cache:
     - cd ${PACKAGE}/
     # render clobber YAML file to use our tarball
     - TARBALL=$(ls -t1 ${PACKAGE}-*.tar.* | head -n1 | xargs readlink -f)
-    - VERSION=$(basename $TARBALL | sed 's/[^-]*-\(.*\)\.tar\..*/\1/' | tr '-' '.')
     - SHA256=$(openssl dgst -r -sha256 $TARBALL | cut -d\  -f1)
-    - sed 's|@VERSION@|'${VERSION}'|g' conda/meta.yaml.in > conda/meta.yaml
-    - sed -i 's|@TARBALL@|'${TARBALL}'|g' conda/meta.yaml
+    - tar -xf ${TARBALL} --wildcards ${PACKAGE}-*/conda/ --strip-components=1
+    - sed 's|@TARBALL@|'${TARBALL}'|g' conda/meta.yaml.in > conda/meta.yaml
     - sed -i 's|@SHA256@|'${SHA256}'|g' conda/meta.yaml
+    # create a feedstock from the conda recipe
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - conda smithy init conda/ --feedstock-directory ${PACKAGE}-feedstock
+    - cd ${PACKAGE}-feedstock
+    - retry conda smithy regenerate --no-check-uptodate
+    - git ls-files
     # build packages (preferring local packages over everything)
     - conda config --set channel_priority strict
     - conda build
-          conda/
+          recipe/
           --dirty
           --error-overlinking
           --error-overdepending
           --no-anaconda-upload
-          --python ${PYTHON_VERSION}
           --use-local
-          --variant-config-files $(conda info --base)/conda_build_config.yaml
+          --variant-config-files .ci_support/${CONDA_CONFIG}.yaml
           ${CONDA_BUILD_ARGS}
   artifacts:
     expire_in: 18h
@@ -254,9 +262,11 @@ cache:
       - "conda/bld/linux-64/${CI_JOB_NAME%%:*}-*.tar.bz2"
       - "conda/bld/linux-64/python-${CI_JOB_NAME%%:*}-*.conda"
       - "conda/bld/linux-64/python-${CI_JOB_NAME%%:*}-*.tar.bz2"
+      - "conda/bld/${CI_JOB_NAME%%:*}_*/work/config.log"
       - "conda/bld/${CI_JOB_NAME%%:*}_*/work/test/test-suite.log"
       - "conda/bld/${CI_JOB_NAME%%:*}_*/work/test/python/test-suite.log"
       - "conda/bld/${CI_JOB_NAME%%:*}_*/work/*/*/*/test-suite.log"
+      - "${CI_JOB_NAME%%:*}/${CI_JOB_NAME%%:*}-feedstock/"
     reports:
       junit:
         - "conda/bld/${CI_JOB_NAME%%:*}_*/work/test/python/junit*.xml"
@@ -354,7 +364,9 @@ pages:
     - cp lalsuite/index.html index.html
     - sed -i 's/..\/lal/lal/g' index.html
     - popd
-  needs: []
+    - cp coverage.html public/
+  needs:
+    - coverage
   artifacts:
     paths:
       - public
@@ -407,6 +419,10 @@ lal:conda:fftw:
   stage: LAL
   needs:
     - make-dist
+  variables:
+    CONDA_BLD_PATH: "${CI_PROJECT_DIR}/conda/bld"
+    CONDA_CONFIG: "linux_64_fft_implfftw"
+    CONDA_PKGS_DIRS: "${CI_PROJECT_DIR}/conda/pkgs"
 
 lal:conda:mkl:
   <<: *conda-build
@@ -415,9 +431,8 @@ lal:conda:mkl:
     - make-dist
   variables:
     CONDA_BLD_PATH: "${CI_PROJECT_DIR}/conda/bld"
+    CONDA_CONFIG: "linux_64_fft_implmkl"
     CONDA_PKGS_DIRS: "${CI_PROJECT_DIR}/conda/pkgs"
-    fft_impl: "mkl"
-    PYTHON_VERSION: "3.7"
 
 # -- lalframe------------------------------------
 
@@ -659,6 +674,10 @@ lalapps:conda:
     - lalpulsar:conda
     - lalinspiral:conda
     - lalinference:conda
+  variables:
+    CONDA_BLD_PATH: "${CI_PROJECT_DIR}/conda/bld"
+    CONDA_CONFIG: "linux_64_python3.7.____cpython"
+    CONDA_PKGS_DIRS: "${CI_PROJECT_DIR}/conda/pkgs"
 
 # -- integration tests --------------------------
 
@@ -698,6 +717,76 @@ top-level:
   image: igwn/lalsuite-dev:el7-testing
   needs: []
   <<: *top-level-build
+  only:
+    - pushes
+    - schedules
+    - web
+
+# Note: adapted from https://git.ligo.org/lscsoft/ligo.skymap.
+coverage:
+  stage: integration tests
+  image: igwn/lalsuite-dev-gcc:8
+  needs: []
+  script:
+    - apt-get -y install --no-install-recommends python3-pip
+    - python3 -m pip install coverage gcovr pycobertura
+    - ./00boot
+    # Configure for C code coverage measurement with gcc
+    - ./configure --enable-swig-python CFLAGS="--coverage -fprofile-abs-path" PYTHON=python3
+    # Run unit tests with Python scripts instrumented by coverage.py
+    - make -j4 check COVERAGE_FILE="$(pwd)/.coverage" PY_LOG_FLAGS="-m coverage run --source \"$(pwd)\" --omit \*/test/\* -p"
+    # Output C coverage data in Cobertura format
+    - gcovr -j4 --exclude-directories test --xml c-coverage.xml
+    # Combine and output Python coverage data in Cobertura format
+    - coverage combine
+    - coverage xml -o py-coverage.xml
+    # Merge coverage reports. They're just XML, after all.
+    - |
+      python3 - <<EOF
+      import lxml.etree
+      import copy
+
+      doc1 = lxml.etree.parse('py-coverage.xml')
+      doc2 = lxml.etree.parse('c-coverage.xml')
+      root1 = doc1.getroot()
+      root2 = doc2.getroot()
+      root1.attrib['lines-covered'] = str(
+          int(root1.attrib['lines-covered']) +
+          int(root2.attrib['lines-covered']))
+      root1.attrib['lines-valid'] = str(
+          int(root1.attrib['lines-valid']) +
+          int(root2.attrib['lines-valid']))
+      try:
+          root1.attrib['line-rate'] = str(
+              int(root1.attrib['lines-covered']) /
+              int(root1.attrib['lines-valid']))
+      except ZeroDivisionError:
+          root1.attrib['line-rate'] = '0'
+      root1.attrib['branches-covered'] = str(
+          int(root1.attrib['branches-covered']) +
+          int(root2.attrib['branches-covered']))
+      root1.attrib['branches-valid'] = str(
+          int(root1.attrib['branches-valid']) +
+          int(root2.attrib['branches-valid']))
+      try:
+          root1.attrib['branch-rate'] = str(
+              int(root1.attrib['branches-covered']) /
+              int(root1.attrib['branches-valid']))
+      except ZeroDivisionError:
+          root1.attrib['branch-rate'] = '0'
+      packages = root1.find('./packages')
+      packages.extend(root2.iterfind('./packages/package'))
+      doc1.write('coverage.xml')
+      EOF
+    # Write HTML coverage report and show coverage summary.
+    - pycobertura show coverage.xml -f html -o coverage.html
+    - pycobertura show coverage.xml | tail -n 1
+  coverage: '/TOTAL\s+.*\s+([\d\.]+)%/'
+  artifacts:
+    paths:
+      - coverage.html
+    reports:
+      cobertura: coverage.xml
   only:
     - pushes
     - schedules
@@ -819,20 +908,13 @@ docker:tags:stretch:
   script:
     - ./00boot
     - CC=${CLANG} CXX=${CLANGXX} ./configure --enable-swig --enable-doxygen
-    - make -j4 distcheck
+    - make -j4 VERBOSE=1 distcheck
   only:
     - schedules
     - web
   artifacts:
     reports:
       junit: "*/test/python/junit*.xml"
-
-clang:8:
-  <<: *clang-build
-  image: igwn/lalsuite-dev-clang:8
-  variables:
-    CLANG: clang-8
-    CLANGXX: clang++-8
 
 clang:9:
   <<: *clang-build
@@ -861,7 +943,7 @@ clang:dev:
   script:
     - ./00boot
     - ./configure --enable-doxygen
-    - make -j4 distcheck
+    - make -j4 VERBOSE=1 distcheck
   only:
     - schedules
     - web
@@ -891,7 +973,7 @@ cuda:
     - make -j4 dist
     - make -j4
     # just compile test suite; some tests require a CUDA device to run
-    - make -j4 check TESTS=
+    - make -j4 VERBOSE=1 check TESTS=
     - make -j4 install
   only:
     - schedules
@@ -923,7 +1005,7 @@ platform:macos:highsierra:
     # is available
     - PYTHON=/opt/local/bin/python2.7 ./configure
     - make -j4
-    - make -j4 check
+    - make -j4 VERBOSE=1 check
   needs: []
   only:
     - schedules
@@ -942,7 +1024,7 @@ platform:macos:sierra:
     # is available
     - PYTHON=/opt/local/bin/python2.7 ./configure
     - make -j4
-    - make -j4 check
+    - make -j4 VERBOSE=1 check
   needs: []
   only:
     - schedules
@@ -950,6 +1032,35 @@ platform:macos:sierra:
   artifacts:
     reports:
       junit: "*/test/python/junit*.xml"
+
+# -- conda
+
+platform:conda:linux:
+  image: igwn/base:conda
+  stage: platform tests
+  before_script:
+    - source /opt/conda/etc/profile.d/conda.sh
+    - conda env create
+          --file conda/environment-lal-development-py37.yml
+          --name lalsuite-platform-tests
+          --quiet
+    - conda info --all
+    - conda list --name lalsuite-platform-tests
+  script:
+    - conda activate lalsuite-platform-tests
+    - ./00boot
+    - ./configure
+          --disable-swig-octave
+    - make -j4
+    - make -j4 VERBOSE=1 check
+  needs: []
+  only:
+    - schedules
+    - web
+  artifacts:
+    reports:
+      junit: "*/test/python/junit*.xml"
+  allow_failure: true
 
 # -- wheels -------------------------------------
 
@@ -968,8 +1079,9 @@ platform:macos:sierra:
     # Bundle and fix up dependent shared libraries
     - auditwheel repair wheel/*.whl
     # Test: do some simple sanity checks in a virtualenv
-    - ${PYPREFIX}/bin/virtualenv test
+    - ${PYPREFIX}/bin/python -m venv test
     - source test/bin/activate
+    - pip install --upgrade pip
     - pip install wheelhouse/*
     - python -c 'import lal, lalframe, lalmetaio, lalsimulation; series = lal.CreateREAL8FrequencySeries("psd", 0, 0, 1, None, 4096); lalsimulation.SimNoisePSDaLIGOAPlusDesignSensitivityT1800042(series, 10)'
   needs: []
@@ -989,7 +1101,7 @@ platform:macos:sierra:
   script:
     - PYVERS=$(echo ${CI_JOB_NAME} | sed 's/.*:cp\(.\)\(.\).*/\1.\2/')
     # Enter virtualenv so that we have a controlled version of Numpy
-    - virtualenv-${PYVERS} env
+    - python${PYVERS} -m venv env
     - source env/bin/activate
     - python -m pip install
           git+https://github.com/lpsinger/delocate@fix-duplicate-libs
@@ -1001,10 +1113,11 @@ platform:macos:sierra:
     # Bundle and fix up dependent shared libraries
     - delocate-wheel -v -w wheelhouse wheel/*.whl
     # Test: do some simple sanity checks in a virtualenv
-    - virtualenv-${PYVERS} test
+    - python${PYVERS} -m venv test
     - source test/bin/activate
     - python -m pip install wheelhouse/*
     - python -c 'import lal, lalframe, lalmetaio, lalsimulation; series = lal.CreateREAL8FrequencySeries("psd", 0, 0, 1, None, 4096); lalsimulation.SimNoisePSDaLIGOAPlusDesignSensitivityT1800042(series, 10)'
+    - lalapps_version
   needs: []
   only:
     - /^lalsuite-v.*$/
@@ -1014,23 +1127,11 @@ platform:macos:sierra:
     paths:
       - wheelhouse
 
-.wheel:manylinux1: &wheel-manylinux1
-  <<: *wheel-manylinux
-  image: containers.ligo.org/lscsoft/lalsuite-manylinux/manylinux1_x86_64
-
 .wheel:manylinux2014: &wheel-manylinux2014
   <<: *wheel-manylinux
   image: containers.ligo.org/lscsoft/lalsuite-manylinux/manylinux2014_x86_64
 
 # Build wheels for all supported platforms
-wheel:cp35-cp35m-manylinux1:
-  <<: *wheel-manylinux1
-wheel:cp36-cp36m-manylinux1:
-  <<: *wheel-manylinux1
-wheel:cp37-cp37m-manylinux1:
-  <<: *wheel-manylinux1
-wheel:cp38-cp38-manylinux1:
-  <<: *wheel-manylinux1
 wheel:cp35-cp35m-manylinux2014:
   <<: *wheel-manylinux2014
 wheel:cp36-cp36m-manylinux2014:
@@ -1060,10 +1161,6 @@ deploy:wheel:
     - pip install twine
     - twine upload wheelhouse/*
   needs:
-    - wheel:cp35-cp35m-manylinux1
-    - wheel:cp36-cp36m-manylinux1
-    - wheel:cp37-cp37m-manylinux1
-    - wheel:cp38-cp38-manylinux1
     - wheel:cp35-cp35m-manylinux2014
     - wheel:cp36-cp36m-manylinux2014
     - wheel:cp37-cp37m-manylinux2014

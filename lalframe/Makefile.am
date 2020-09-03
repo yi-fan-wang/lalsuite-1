@@ -11,11 +11,13 @@ EXTRA_DIST += \
 	$(DATA)
 
 SUBDIRS = \
+	conda \
 	debian \
 	include \
 	lib \
 	swig \
 	python \
+	bin \
 	test \
 	doxygen \
 	$(END_OF_LIST)

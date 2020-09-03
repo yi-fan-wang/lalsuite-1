@@ -37,6 +37,12 @@
 
 #include <lal/SFTutils.h>
 
+#if defined(__GNUC__)
+#define UNUSED __attribute__ ((unused))
+#else
+#define UNUSED
+#endif
+
 /*---------- DEFINES ----------*/
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -385,16 +391,22 @@ XLALDestroyTimestampVector ( LIGOTimeGPSVector *vect)
 
 /**
  * Given a start-time, Tspan, Tsft and Toverlap, returns a list of timestamps
- * covering this time-stretch (allowing for overlapping SFT timestamps).
+ * covering this time-stretch (allowing for overlapping SFTs).
  *
- * NOTE: boundary-handling: the returned list of timestamps are guaranteed to *cover* the
- * interval [tStart, tStart+duration), assuming a each timestamp covers a length of 'Tsft'
- * This implies that the actual timestamps-coverage can extend up to 'Tsft' beyond 'tStart+duration'.
+ * NOTE: boundary-handling: the returned list of timestamps fall within the
+ * interval [tStart, tStart+Tspan),
+ * consistent with the convention defined in XLALCWGPSinRange().
+ * Assuming each SFT covers a stretch of data of length 'Tsft',
+ * the returned timestamps correspond to a set of SFTs that is guaranteed
+ * to *cover* all data between 'tStart' and 'tStart+Tspan'.
+ * This implies that, while the last timestamp returned will always be
+ * 'ret->data[numSFTs-1] < tStart+Tspan',
+ * the actual data coverage can extend up to 'Tsft' beyond 'tStart+duration'.
  */
 LIGOTimeGPSVector *
 XLALMakeTimestamps ( LIGOTimeGPS tStart,	/**< GPS start-time */
                      REAL8 Tspan, 		/**< total duration to cover, in seconds */
-                     REAL8 Tsft,		/**< Tsft: SFT length of each timestamp, in seconds */
+                     REAL8 Tsft,		/**< length of the SFT corresponding to each timestamp, in seconds */
                      REAL8 Toverlap		/**< time to overlap successive SFTs by, in seconds */
                      )
 {
@@ -841,28 +853,34 @@ XLALDestroyMultiTimestamps ( MultiLIGOTimeGPSVector *multiTS )
 
 } /* XLALDestroyMultiTimestamps() */
 
-///
-/// Parses valid CW detector names and prefixes: 'name' input can be either a valid detector name or prefix
-/// \return allocated prefix string (2 characters+0) for valid detectors, NULL otherwise
-///
-/// If passed a non-NULL pointers 'lalCachedIndex', will set to index >= 0 into the
-/// lalCachedDetectors[] array if found there, or -1 if it's one of the "CW special" detectors
-///
-/// \note this should be the *only* function defining valid CW detector names and prefixes
-///
-/// \note if first two characters of 'name' match a valid detector prefix, that is accepted, which
-/// allows passing longer strings beginning with a detector prefix ('H1:blabla') without extra hassle
-///
-/// \note the returned string is allocated here and needs to be free'ed by caller!
-///
-char *
-XLALGetCWDetectorPrefix ( INT4 *lalCachedIndex, const char *name )
+
+/**
+ * Parses valid CW detector names and prefixes. 'name' input can be either a valid detector name or prefix
+ *
+ * \return XLAL_SUCCESS if 'name' is a valid detector name/prefix, an XLAL error code on failure
+ *
+ * If passed a non-NULL pointer 'prefix', will be set to the Allocated prefix string (2 characters+0)
+ * for valid detectors, NULL otherwise.
+ *
+ * If passed a non-NULL pointer 'lalCachedIndex', will set to index >= 0 into the
+ * lalCachedDetectors[] array if found there, or -1 if it's one of the "CW special" detectors
+ *
+ * \note This should be the *only* function defining valid CW detector names and prefixes
+ *
+ * \note 'prefix' is allocated here and needs to be free'ed by caller!
+ *
+ * \note Unless 'exactMatch' is true, if first two characters of 'name' match a valid detector prefix,
+ * that is accepted, which allows passing longer strings beginning with a detector prefix ('H1:blabla')
+ * without extra hassle
+ */
+int
+XLALFindCWDetector ( CHAR** prefix, INT4 *lalCachedIndex, const CHAR *name, const BOOLEAN exactMatch )
 {
-  XLAL_CHECK_NULL ( name != NULL, XLAL_EINVAL );
-  XLAL_CHECK_NULL ( strlen ( name ) >= 2, XLAL_EINVAL );	// need at least a full prefix 'letter+number'
+  XLAL_CHECK ( name != NULL, XLAL_EINVAL );
+  XLAL_CHECK ( strlen ( name ) >= 2, XLAL_EINVAL );	// need at least a full prefix 'letter+number'
 
   // ----- first check if 'name' corresponds to one of our 'CW special' detectors (LISA and X-ray satellites)
-  const char *specialDetectors[] =
+  const CHAR *specialDetectors[] =
     {
       "Z1",	  /* LISA effective IFO 1 */
       "Z2",	  /* LISA effective IFO 2 */
@@ -873,19 +891,22 @@ XLALGetCWDetectorPrefix ( INT4 *lalCachedIndex, const char *name )
       "Z7",	  /* LISA pseudo TDI A */
       "Z8",	  /* LISA pseudo TDI E */
       "Z9",	  /* LISA pseudo TDI T */
-
-      "X1",       /* RXTE PCA */
-      "X2",       /* RXTE ASM */
       NULL
     };
   for ( UINT4 i = 0; specialDetectors[i] != NULL; i ++ )
     {
-      if ( ( specialDetectors[i][0] == name[0] ) && ( specialDetectors[i][1] == name[1] )  )
+      if ( strncmp ( specialDetectors[i], name, 2 ) == 0 )
         {
+          if ( exactMatch && strcmp( name + strlen ( specialDetectors[i] ), "" ) != 0 ) {
+            XLAL_ERROR ( XLAL_EINVAL, "Trailing garbage '%s' after detector prefix\n", name + strlen ( specialDetectors[i] ) );
+          }
+          if ( prefix != NULL ) {
+            (*prefix) = XLALStringDuplicate ( specialDetectors[i] );
+          }
           if ( lalCachedIndex != NULL ) {
             (*lalCachedIndex) = -1;
           }
-          return XLALStringDuplicate ( specialDetectors[i] );
+          return XLAL_SUCCESS;
         }
     } // for i < len(specialDetectors)
 
@@ -893,43 +914,80 @@ XLALGetCWDetectorPrefix ( INT4 *lalCachedIndex, const char *name )
   UINT4 numLALDetectors = sizeof(lalCachedDetectors) / sizeof(lalCachedDetectors[0]);
   for ( UINT4 i = 0; i < numLALDetectors; i ++)
     {
-      const char *prefix_i = lalCachedDetectors[i].frDetector.prefix;
-      const char *name_i   = lalCachedDetectors[i].frDetector.name;
-      if ( ((prefix_i[0] == name[0]) && (prefix_i[1] == name[1]))
-           || strncmp ( name, name_i, strlen ( name_i ) ) == 0
-           )
+      const CHAR *prefix_i = lalCachedDetectors[i].frDetector.prefix;
+      const CHAR *name_i   = lalCachedDetectors[i].frDetector.name;
+      if ( strncmp ( prefix_i, name, 2 ) == 0 )
         {
+          if ( exactMatch && strcmp( name + strlen ( prefix_i ), "" ) != 0 ) {
+            XLAL_ERROR ( XLAL_EINVAL, "Trailing garbage '%s' after detector prefix\n", name + strlen ( prefix_i ) );
+          }
+          if ( prefix != NULL ) {
+            (*prefix) = XLALStringDuplicate ( prefix_i );
+          }
           if ( lalCachedIndex != NULL ) {
             (*lalCachedIndex) = i;
           }
-          return XLALStringDuplicate ( prefix_i );
-        } // found prefix match in lalCachedDetectors[]
+          return XLAL_SUCCESS;
+        }
+      if ( strncmp ( name, name_i, strlen ( name_i ) ) == 0 )
+        {
+          if ( exactMatch && strcmp( name + strlen ( name_i ), "" ) != 0 ) {
+            XLAL_ERROR ( XLAL_EINVAL, "Trailing garbage '%s' after detector prefix\n", name + strlen ( name_i ) );
+          }
+          if ( prefix != NULL ) {
+            (*prefix) = XLALStringDuplicate ( prefix_i );
+          }
+          if ( lalCachedIndex != NULL ) {
+            (*lalCachedIndex) = i;
+          }
+          return XLAL_SUCCESS;
+        }
 
     } // for i < numLALDetectors
 
-  XLAL_ERROR_NULL ( XLAL_EINVAL, "Unknown detector name '%s'\n", name );
+  if ( prefix != NULL ) {
+    (*prefix) = NULL;
+  }
+  XLAL_ERROR ( XLAL_EINVAL, "Unknown detector name '%s'\n", name );
 
-} // XLALGetCWDetectorPrefix()
+} // XLALFindCWDetector()
 
 /**
- * Extract/construct the unique 2-character "channel prefix" from the given "detector-name".
- * This is only a convenience wrapper around XLALGetCWDetectorPrefix() for backwards compatibility.
+ * Determine if 'name' is a valid detector name or prefix
  *
- * NOTE: the returned string is allocated here!
+ * \return TRUE if 'name' is a valid detector name/prefix, FALSE otherwise
+ * (or if an error is encountered; this function does not raise XLAL errors)
+ */
+BOOLEAN
+XLALIsValidCWDetector ( const CHAR *name )
+{
+  int UNUSED errnum;
+  int retn;
+  XLAL_TRY_SILENT( retn = XLALFindCWDetector ( NULL, NULL, name, 1 ), errnum );
+  return ( retn == XLAL_SUCCESS );
+}
+
+/**
+ * Find the valid CW detector prefix. 'name' input can be either a valid detector name or prefix
  *
+ * \note The returned string is allocated here!
  */
 CHAR *
 XLALGetChannelPrefix ( const CHAR *name )
 {
-  return XLALGetCWDetectorPrefix ( NULL, name );
+  XLAL_CHECK_NULL ( name != NULL, XLAL_EINVAL );
+
+  CHAR *prefix = NULL;
+  XLAL_CHECK_NULL ( XLALFindCWDetector ( &prefix, NULL, name, 0 ) == XLAL_SUCCESS, XLAL_EINVAL, "Unknown detector name '%s'\n", name );
+
+  return prefix;
 } // XLALGetChannelPrefix()
 
-
-///
-/// Find the site geometry-information 'LALDetector' for given a detector name (or prefix).
-///
-/// \note The LALDetector struct is allocated here and needs to be free'ed by caller!
-///
+/**
+ * Find the site geometry-information 'LALDetector' for given a detector name (or prefix).
+ *
+ * \note The LALDetector struct is allocated here and needs to be free'ed by caller!
+ */
 LALDetector *
 XLALGetSiteInfo ( const CHAR *name )
 {
@@ -940,17 +998,13 @@ XLALGetSiteInfo ( const CHAR *name )
   // first turn the free-form 'detector-name' into a well-defined channel-prefix, and find lalCachedDetector[] index
   INT4 lalCachedIndex = -1;
   CHAR *prefix;
-  XLAL_CHECK_NULL ( (prefix = XLALGetCWDetectorPrefix ( &lalCachedIndex, name )) != NULL, XLAL_EFUNC );
+  XLAL_CHECK_NULL ( XLALFindCWDetector ( &prefix, &lalCachedIndex, name, 0 ) == XLAL_SUCCESS, XLAL_EFUNC );
 
   LALDetector *site;
   XLAL_CHECK_NULL ( ( site = XLALCalloc ( 1, sizeof( *site) )) != NULL, XLAL_ENOMEM );
 
   switch ( prefix[0] )
     {
-    case 'X':	    // X-ray satellite data
-      XLAL_ERROR_NULL ( XLAL_EINVAL, "Sorry, detector site not implemented for special 'X'-ray detector 'name=%s, prefix=%s'\n", name, prefix );
-      break;
-
     case 'Z':       // create dummy-sites for LISA
       XLAL_CHECK_NULL ( XLALcreateLISA ( site, prefix[1] ) == XLAL_SUCCESS, XLAL_EFUNC, "Failed to created LISA detector 'name=%s, prefix=%s'\n", name, prefix );
       break;
@@ -2315,7 +2369,8 @@ XLALComputePSDandNormSFTPower ( REAL8Vector **finalPSD, /* [out] final PSD avera
   XLALDestroyREAL8Vector ( overIFOs );
 
   if ( !returnMultiPSDVector ) {
-    XLALDestroyMultiPSDVector ( *multiPSDVector);
+    XLALDestroyMultiPSDVector ( *multiPSDVector );
+    *multiPSDVector = NULL;
   }
 
   return XLAL_SUCCESS;

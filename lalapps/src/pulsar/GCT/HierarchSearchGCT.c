@@ -65,26 +65,11 @@
 #define UNUSED
 #endif
 
-/* Hooks for Einstein@Home / BOINC
-   These are defined to do nothing special in the standalone case
-   and will be set in boinc_extras.h if EAH_BOINC is set
-*/
-#ifdef EAH_BOINC
-#include "hs_boinc_extras.h"
-// reserves 1% of progress for the last (toplist recaclculation) step
-#define SHOW_PROGRESS_RESERVE(rac,dec,count,total,freq,fband)\
-        SHOW_PROGRESS(rac, dec, (count) - 0.01 * (total), total, freq, fband)
-#else
 #define GET_GCT_CHECKPOINT read_gct_checkpoint // (cptname, semiCohToplist, NULL, &count)
 #define SET_GCT_CHECKPOINT write_gct_checkpoint
-#define SHOW_PROGRESS(rac,dec,skyGridCounter,tpl_total,freq,fband)
-#define SHOW_PROGRESS_RESERVE(rac,dec,count,total,freq,fband)
-#define MAIN  main
 char**global_argv;
 int global_argc;
-#endif /* EAH_BOINC */
 
-#define BLOCKSRNGMED    101     /**< Default running median window size */
 #define FSTART          100.0	/**< Default Start search frequency */
 #define FBAND           0.0  /**< Default search band */
 #define FDOT            0.0       /**< Default value of first spindown */
@@ -94,9 +79,6 @@ int global_argc;
 #define DF2DOT          0.0       /**< Default range of second spindown parameter */
 #define DF3DOT          0.0       /**< Default range of third spindown parameter */
 #define SKYREGION       "allsky" /**< default sky region to search over -- just a single point*/
-#define DTERMS          8    /**< Default number of dirichlet kernel terms for calculating Fstat */
-
-/**< Default number of dirichlet kernel terms for calculating Fstat */
 #define MISMATCH        0.3       /**< Default for metric grid maximal mismatch value */
 #define DALPHA          0.001   /**< Default resolution for isotropic or flat grids */
 #define DDELTA          0.001   /**< Default resolution for isotropic or flat grids */
@@ -142,7 +124,6 @@ typedef struct {
   UINT4 Dterms;                    /**< size of Dirichlet kernel for Fstat calculation */
   UINT4 DtermsRecalc;              /**< Recalc: size of Dirichlet kernel for Fstat calculation */
   LALStringVector* assumeSqrtSX;   /**< Assume stationary Gaussian noise with detector noise-floors sqrt{SX}" */
-  BOOLEAN SignalOnly;              /**< DEPRECATED: ALTERNATIVE switch to assume Sh=1 instead of estimating noise-floors from SFTs */
   /* parameters describing the coherent data-segments */
   REAL8 tStack;                    /**< duration of stacks */
   UINT4 nStacks;                   /**< number of stacks */
@@ -247,7 +228,7 @@ static int write_TimingInfo ( const CHAR *fname, const timingInfo_t *ti );
 static inline REAL4 findLoudestTwoF ( const FstatResults *in );
 
 /* ---------- Global variables -------------------- */
-LALStatus *global_status; /* a global pointer to MAIN()s head of the LALStatus structure */
+LALStatus *global_status; /* a global pointer to main()s head of the LALStatus structure */
 char *global_column_headings_stringp;
 
 // XLALReadSegmentsFromFile(): applications which still must support
@@ -256,7 +237,7 @@ extern int XLALReadSegmentsFromFile_support_4column_format;
 
 /* ###################################  MAIN  ################################### */
 
-int MAIN( int argc, char *argv[]) {
+int main( int argc, char *argv[]) {
   LALStatus status = blank_status;
 
   /* temp loop variables: generally k loops over segments and j over SFTs in a stack */
@@ -386,7 +367,6 @@ int MAIN( int argc, char *argv[]) {
   BOOLEAN uvar_semiCohToplist = TRUE; /* if overall first stage candidates are to be output */
 
   LALStringVector* uvar_assumeSqrtSX = NULL;    /* Assume stationary Gaussian noise with detector noise-floors sqrt{SX}" */
-  BOOLEAN uvar_SignalOnly = FALSE;              /* DEPRECATED: ALTERNATIVE switch to assume Sh=1 instead of estimating noise-floors from SFTs */
 
   BOOLEAN uvar_recalcToplistStats = FALSE; 	/* Do additional analysis for all toplist candidates, output F, FXvector for postprocessing */
   BOOLEAN uvar_loudestSegOutput = FALSE; 	/* output extra info about loudest segment; requires recalcToplistStats */
@@ -424,15 +404,15 @@ int MAIN( int argc, char *argv[]) {
   REAL8 uvar_refTime = 0;
   INT4 uvar_nCand1 = NCAND1; /* number of candidates to be followed up from first stage */
 
-  INT4 uvar_blocksRngMed = BLOCKSRNGMED;
+  INT4 uvar_blocksRngMed = FstatOptionalArgsDefaults.runningMedianWindow;
 
   REAL8 uvar_tStack = 0;
   INT4  uvar_nStacksMax = 1;
   CHAR *uvar_segmentList = NULL;	/**< ALTERNATIVE: file containing a pre-computed segment list of tuples (startGPS endGPS duration[h] NumSFTs) */
 
-  INT4 uvar_Dterms = DTERMS;
-  INT4 uvar_DtermsRecalc = DTERMS;
-  INT4 uvar_SSBprecision = SSBPREC_RELATIVISTIC;
+  INT4 uvar_Dterms = FstatOptionalArgsDefaults.Dterms;
+  INT4 uvar_DtermsRecalc = FstatOptionalArgsDefaults.Dterms;
+  INT4 uvar_SSBprecision = FstatOptionalArgsDefaults.SSBprec;
   INT4 uvar_gammaRefine = 1;
   INT4 uvar_gamma2Refine = 1;
   INT4 uvar_metricType1 = LAL_PMETRIC_COH_PTOLE_ANALYTIC;
@@ -453,8 +433,8 @@ int MAIN( int argc, char *argv[]) {
   CHAR *uvar_outputTiming = NULL;
   CHAR *uvar_outputTimingDetails = NULL;
 
-  int uvar_FstatMethod = FMETHOD_DEMOD_BEST;
-  int uvar_FstatMethodRecalc = FMETHOD_DEMOD_BEST;
+  int uvar_FstatMethod = FstatOptionalArgsDefaults.FstatMethod;
+  int uvar_FstatMethodRecalc = FstatOptionalArgsDefaults.FstatMethod;
 
   timingInfo_t XLAL_INIT_DECL(timing);
 
@@ -469,13 +449,8 @@ int MAIN( int argc, char *argv[]) {
 
   global_status = &status;
 
-#ifndef EAH_BOINC
   global_argv = argv;
   global_argc = argc;
-#endif
-
-#ifdef EAH_LALDEBUGLEVEL
-#endif
 
   // XLALReadSegmentsFromFile(): continue to support deprecated 4-column format (startGPS endGPS duration NumSFTs, duration is ignored)
   XLALReadSegmentsFromFile_support_4column_format = 1;
@@ -490,11 +465,7 @@ int MAIN( int argc, char *argv[]) {
   strcpy(uvar_fnameout, FNAMEOUT);
 
   /* set LAL error-handler */
-#ifdef EAH_BOINC
-  lal_errhandler = BOINC_LAL_ErrHand;
-#else
   lal_errhandler = LAL_ERR_EXIT;
-#endif
 
   /* register user input variables */
   XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_log,                 "log",                 BOOLEAN,      0,   OPTIONAL,   "Write log file") == XLAL_SUCCESS, XLAL_EFUNC);
@@ -536,7 +507,6 @@ int MAIN( int argc, char *argv[]) {
   XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_printFstat1,         "printFstat1",         BOOLEAN,      0,   OPTIONAL,   "Print 1st stage Fstat vectors") == XLAL_SUCCESS, XLAL_EFUNC);
 
   XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_assumeSqrtSX,        "assumeSqrtSX",        STRINGVector, 0,   OPTIONAL,   "Don't estimate noise-floors but assume (stationary) per-IFO sqrt{SX} (if single value: use for all IFOs)") == XLAL_SUCCESS, XLAL_EFUNC);
-  XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_SignalOnly,          "SignalOnly",          BOOLEAN,      'S', DEPRECATED, "DEPRECATED ALTERNATIVE: Don't estimate noise-floors but assume sqrtSX=1 instead") == XLAL_SUCCESS, XLAL_EFUNC);
 
   XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_nStacksMax,          "nStacksMax",          INT4,         0,   OPTIONAL,   "Maximum No. of segments" ) == XLAL_SUCCESS, XLAL_EFUNC);
   XLAL_CHECK_MAIN( XLALRegisterNamedUvar( &uvar_tStack,              "tStack",              REAL8,        'T', OPTIONAL,   "Duration of segments (sec)" ) == XLAL_SUCCESS, XLAL_EFUNC);
@@ -624,9 +594,6 @@ int MAIN( int argc, char *argv[]) {
 	return( HIERARCHICALSEARCH_EVAL );
   }
 
-  /* check SignalOnly and assumeSqrtSX */
-  XLAL_CHECK_MAIN ( !uvar_SignalOnly || (uvar_assumeSqrtSX == NULL), XLAL_EINVAL, "Cannot pass --SignalOnly AND --assumeSqrtSX at the same time!\n");
-
   /* 2F threshold for semicoherent stage */
 #ifndef EXP_NO_NUM_COUNT
   REAL4 TwoFthreshold = 2.0 * uvar_ThrF;
@@ -682,19 +649,6 @@ int MAIN( int argc, char *argv[]) {
       XLAL_CHECK ( 0 == create_gctFstat_toplist ( &semiCohToplist, uvar_nCand1, uvar_SortToplist),
                    XLAL_EFUNC, "create_gctFstat_toplist() failed for nCand=%d and sortBy=%d\n", uvar_nCand1, uvar_SortToplist );
     }
-
-#ifdef EAH_BOINC
-  // BOINC Apps always checkpoint, so set a default filename here
-  if (uvar_fnameChkPoint == NULL) {
-    CHAR*fname = "checkpoint.cpt";
-    uvar_fnameChkPoint = XLALMalloc(strlen(fname)+1);
-    if (uvar_fnameChkPoint == NULL) {
-      fprintf(stderr, "error allocating memory [HierarchSearchGCT.c %d]\n" , __LINE__);
-      return(HIERARCHICALSEARCH_EMEM);
-    }
-    strcpy(uvar_fnameChkPoint, fname);
-  }
-#endif
 
   /* write the log file */
   if ( uvar_log )
@@ -828,7 +782,6 @@ int MAIN( int argc, char *argv[]) {
   usefulParams.Dterms = uvar_Dterms;
   usefulParams.DtermsRecalc = uvar_DtermsRecalc;
   usefulParams.assumeSqrtSX = uvar_assumeSqrtSX;
-  usefulParams.SignalOnly = uvar_SignalOnly;
   usefulParams.SSBprec = uvar_SSBprecision;
   usefulParams.Fmethod = uvar_FstatMethod;
   usefulParams.FmethodRecalc = uvar_FstatMethodRecalc;
@@ -1259,13 +1212,6 @@ int MAIN( int argc, char *argv[]) {
   /* ################## loop over SKY coarse-grid points ################## */
   while(thisScan.state != STATE_FINISHED)
     {
-#ifdef EAH_BOINC
-      SHOW_PROGRESS_RESERVE(dopplerpos.Alpha, dopplerpos.Delta,
-                    skyGridCounter * usefulParams.nf1dot + f1dotGridCounter,
-                    thisScan.numSkyGridPoints * usefulParams.nf1dot, uvar_Freq, uvar_FreqBand);
-
-      fprintf(stderr, "\n%d", skyGridCounter);
-#endif
       /*------------- calculate F-Statistic for each segment --------------*/
 
       /* normalize skyposition: correctly map into [0,2pi]x[-pi/2,pi/2] */
@@ -1307,12 +1253,9 @@ int MAIN( int argc, char *argv[]) {
         while ( if3dot < usefulParams.nf3dot ) {
 
           /* show progress */
-#ifndef EAH_BOINC
           LogPrintf( LOG_NORMAL, "Coarse grid sky:%d/%d f1dot:%d/%d f2dot:%d/%d f3dot:%d/%d\n",
                      skyGridCounter+1, thisScan.numSkyGridPoints, ifdot+1, usefulParams.nf1dot, if2dot+1, usefulParams.nf2dot, if3dot+1, usefulParams.nf3dot );
-#else
-	  fprintf(stderr, ".");
-#endif
+
 
           /* ------------- Set up coarse grid --------------------------------------*/
           coarsegrid.freqlength = (UINT4) (binsFstat1);
@@ -1322,7 +1265,7 @@ int MAIN( int argc, char *argv[]) {
 
           /* allocate memory for coarsegrid */
           coarsegrid.TwoF = (REAL4 *)LALRealloc( coarsegrid.TwoF, coarsegrid.length * sizeof(REAL4));
-	  if ( uvar_computeBSGL ) {
+          if ( uvar_computeBSGL ) {
             coarsegrid.TwoFX = (REAL4 *)LALRealloc( coarsegrid.TwoFX, coarsegrid.numDetectors * coarsegrid.length * sizeof(REAL4));
           }
           coarsegrid.Uindex = (UINT4 *)LALRealloc( coarsegrid.Uindex, coarsegrid.length * sizeof(UINT4));
@@ -1575,13 +1518,6 @@ int MAIN( int argc, char *argv[]) {
                     XLALPrintError ("%s: XLALComputeFstat() failed with errno=%d\n", __func__, xlalErrno );
                     return xlalErrno;
                   }
-                  /* if single-only flag is given, add +4 to F-statistic */
-                  if ( uvar_SignalOnly ) {
-                    if (XLALAdd4ToFstatResults(Fstat_res) != XLAL_SUCCESS) {
-                      XLALPrintError ("%s: XLALAdd4ToFstatResults() failed with errno=%d\n", __func__, xlalErrno );
-                      return xlalErrno;
-                    }
-                  }
 
                   /* Loop over coarse-grid frequency bins */
                   for (ifreq = 0; ifreq < Fstat_res->numFreqBins; ifreq++) {
@@ -1794,12 +1730,6 @@ int MAIN( int argc, char *argv[]) {
         } /* ########## End of loop over coarse-grid f2dot values (if2dot) ########## */
         ifdot++;  /* Increment ifdot counter BEFORE SET_GCT_CHECKPOINT */
 
-#ifdef EAH_BOINC
-        SHOW_PROGRESS_RESERVE(dopplerpos.Alpha, dopplerpos.Delta,
-                      skyGridCounter * usefulParams.nf1dot + ifdot,
-                      thisScan.numSkyGridPoints * usefulParams.nf1dot, uvar_Freq, uvar_FreqBand);
-#endif
-
         if ( !uvar_outputTiming ) {
           SET_GCT_CHECKPOINT (uvar_fnameChkPoint, semiCohToplist, semiCohToplist2, semiCohToplist3,skyGridCounter*usefulParams.nf1dot+ifdot, TRUE);
         }
@@ -1821,9 +1751,6 @@ int MAIN( int argc, char *argv[]) {
       }
 
     } /* ######## End of while loop over 1st stage SKY coarse-grid points ############ */
-#ifdef EAH_BOINC
-  fprintf(stderr, "\n");
-#endif
   /*---------------------------------------------------------------------------------*/
 
   /* now that we have the final toplist, translate all pulsar parameters to correct reftime */
@@ -2004,13 +1931,6 @@ int MAIN( int argc, char *argv[]) {
       }
   }
   LogPrintfVerbatim ( LOG_DEBUG, "done.\n");
-
-#ifdef EAH_BOINC
-  SHOW_PROGRESS(dopplerpos.Alpha, dopplerpos.Delta,
-                skyGridCounter * usefulParams.nf1dot,
-                skyGridCounter * usefulParams.nf1dot,
-                uvar_Freq, uvar_FreqBand);
-#endif
 
   clear_gct_checkpoint (uvar_fnameChkPoint);
 
@@ -2353,16 +2273,9 @@ void SetUpSFTs( LALStatus *status,			/**< pointer to LALStatus structure */
   /* loop over segments and read sfts */
   for (k = 0; k < in->nStacks; k++) {
 
-    /* if single-only flag is given, assume a PSD with sqrt(S) = 1.0 */
+    /* if flag is given, assume a PSD with sqrt(S) = 1.0 */
     MultiNoiseFloor s_assumeSqrtSX;
-    if ( in->SignalOnly ) {
-      const SFTCatalog *catalog_k = &(catalogSeq.data[k]);
-      s_assumeSqrtSX.length = XLALCountIFOsInCatalog ( catalog_k );
-      for (UINT4 X = 0; X < s_assumeSqrtSX.length; ++X) {
-        s_assumeSqrtSX.sqrtSn[X] = 1.0;
-      }
-      optionalArgs.assumeSqrtSX = &s_assumeSqrtSX;
-    } else if ( in->assumeSqrtSX != NULL ) {
+    if ( in->assumeSqrtSX != NULL ) {
       const SFTCatalog *catalog_k = &(catalogSeq.data[k]);
       LALStringVector *detectorIDs_k = NULL;
       if ( ( detectorIDs_k = XLALListIFOsInCatalog( catalog_k ) ) == NULL ) {

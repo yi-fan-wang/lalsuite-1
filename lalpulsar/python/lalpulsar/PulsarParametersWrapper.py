@@ -696,7 +696,7 @@ class PulsarParametersPy(object):
         """
 
         # output string format (set so that values should line up)
-        mkl = max([len(kn) for kn in self.keys()]) + 2  # max key length for output alignment
+        mkl = max([len(kn) for kn in self.keys()]) + 5  # max key length for output alignment
         vlb = precision + 10  # allow extra space for minus sign/exponents
         outputstr = "{{name: <{0}}}{{value: <{1}}}{{fitflag}}\t{{error}}".format(mkl, vlb)
 
@@ -748,7 +748,7 @@ class PulsarParametersPy(object):
             if isinstance(tvalue, list) or isinstance(tvalue, np.ndarray):
                 idxoffset = 0
                 idxsep = ""
-                if key in ['WAVESIN', 'WAVECOS', 'GLEP', 'GLPH', 'GLF0', 'GLF1', 'GLF0D', 'GLTD']:
+                if key in ['WAVESIN', 'WAVECOS', 'GLEP', 'GLPH', 'GLF0', 'GLF1', 'GLF2', 'GLF0D', 'GLTD']:
                     # the TEMPO variable name for these parameter start with an index a 1
                     idxoffset = 1
 

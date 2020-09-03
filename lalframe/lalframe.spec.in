@@ -1,6 +1,6 @@
 %define nightly @NIGHTLY_VERSION@%{nil}
 %define _sysconfdir %{_prefix}/etc
-%define release 4
+%define release 1
 %define configure_opts %{nil}
 
 %if "%{?nightly:%{nightly}}%{!?nightly:0}" == "%{nil}"
@@ -23,24 +23,24 @@ Prefix: %{_prefix}
 # -- build requirements -----
 
 # C
+BuildRequires: libframel-devel >= @MIN_FRAMEL_VERSION@
 BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: help2man
 BuildRequires: lal-devel >= @MIN_LAL_VERSION@
 BuildRequires: ldas-tools-framecpp-c-devel >= @MIN_FRAMECPPC_VERSION@
-BuildRequires: libframe-devel
 BuildRequires: make
 BuildRequires: pkgconfig >= 0.18.0
 
 # swig
-BuildRequires: swig >= 3.0.9
+BuildRequires: swig >= @MIN_SWIG_VERSION@
 
 # python2
 BuildRequires: python2-rpm-macros
 BuildRequires: python-devel
 BuildRequires: python2-lal >= @MIN_LAL_VERSION@
 BuildRequires: python2-mock
-BuildRequires: python2-numpy
+BuildRequires: python2-numpy >= @MIN_NUMPY_VERSION@
 BuildRequires: python-pathlib
 BuildRequires: pytest
 
@@ -49,7 +49,7 @@ BuildRequires: python-srpm-macros
 BuildRequires: python3-rpm-macros
 BuildRequires: epel-rpm-macros
 BuildRequires: python%{python3_pkgversion}-devel
-BuildRequires: python%{python3_pkgversion}-numpy
+BuildRequires: python%{python3_pkgversion}-numpy >= @MIN_NUMPY_VERSION@
 BuildRequires: python%{python3_pkgversion}-lal >= @MIN_LAL_VERSION@
 BuildRequires: python%{python3_pkgversion}-pytest
 
@@ -60,9 +60,9 @@ BuildRequires: lal-octave >= @MIN_LAL_VERSION@
 # -- packages ---------------
 
 # lalframe
-Requires: ldas-tools-framecpp-c >= @MIN_FRAMECPPC_VERSION@
-Requires: libframe
 Requires: lal >= @MIN_LAL_VERSION@
+Requires: ldas-tools-framecpp-c >= @MIN_FRAMECPPC_VERSION@
+Requires: libframel >= @MIN_FRAMEL_VERSION@
 
 %description
 The LSC Algorithm Frame Library for gravitational wave data analysis. This
@@ -74,9 +74,9 @@ that use the LAL Frame library.
 Summary: Files and documentation needed for compiling programs that use LAL Frame
 Group: LAL
 Requires: %{name} = %{version}
-Requires: ldas-tools-framecpp-c-devel >= @MIN_FRAMECPPC_VERSION@
-Requires: libframe-devel
+Requires: libframel-devel >= @MIN_FRAMEL_VERSION@
 Requires: lal-devel >= @MIN_LAL_VERSION@
+Requires: ldas-tools-framecpp-c-devel >= @MIN_FRAMECPPC_VERSION@
 %description devel
 The LSC Algorithm Frame Library for gravitational wave data analysis. This
 package contains files needed build applications that use the LAL Frame
@@ -89,7 +89,7 @@ Group: LAL
 Requires: %{name} = %{version}
 Requires: python
 Requires: python2-lal >= @MIN_LAL_VERSION@
-Requires: python2-numpy
+Requires: python2-numpy >= @MIN_NUMPY_VERSION@
 Provides: %{name}-python = %{version}-%{release}
 Obsoletes: %{name}-python < %{version}-%{release}
 %{?python_provide:%python_provide python2-%{name}}
@@ -104,7 +104,7 @@ Group: LAL
 Requires: %{name} = %{version}
 Requires: python%{python3_pkgversion}
 Requires: python%{python3_pkgversion}-lal >= @MIN_LAL_VERSION@
-Requires: python%{python3_pkgversion}-numpy
+Requires: python%{python3_pkgversion}-numpy >= @MIN_NUMPY_VERSION@
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
 %description -n python%{python3_pkgversion}-%{name}
 The LSC Algorithm Library for gravitational wave data analysis.
@@ -137,8 +137,9 @@ cp -r . %py3dir
 pushd %py3dir
 rm -rfv python/%{name}/*.{la,lo,o} python/%{name}/.libs
 %configure %{configure_opts} --disable-doxygen --disable-gcc-flags --disable-swig-octave --enable-swig-python PYTHON=%{__python3}
-%{__make} %{?_smp_mflags} V=1 -C swig
-%{__make} %{?_smp_mflags} V=1 -C python/%{name}
+%{__make} V=1 -C swig
+%{__make} V=1 -C python/%{name}
+%{__make} V=1 -C bin bin_PROGRAMS="" dist_bin_SCRIPTS=""
 popd
 
 %check
@@ -203,6 +204,9 @@ rm -Rf ${RPM_BUILD_DIR}/%{name}-%{version}%{?nightly:-%{nightly}}
 
 # dates should be formatted using: 'date +"%a %b %d %Y"'
 %changelog
+* Mon Jun 08 2020 Adam Mercer <adam.mercer@ligo.org> 1.5.1-1
+- Update for 1.5.1
+
 * Mon Dec 09 2019 Adam Mercer <adam.mercer@ligo.org> 1.5.0-4
 - Packaging updates
 

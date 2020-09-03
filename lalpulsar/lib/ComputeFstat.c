@@ -25,7 +25,6 @@
 #include <math.h>
 #include <gsl/gsl_math.h>
 
-#define _COMPUTE_FSTAT_C
 #include "ComputeFstat_internal.h"
 
 #include <lal/LALString.h>
@@ -69,7 +68,6 @@ static const char *const FstatMethodNames[FMETHOD_END] = {
   [FMETHOD_RESAMP_BEST]		= "ResampBest",
 };
 
-
 const FstatOptionalArgs FstatOptionalArgsDefaults = {
   .randSeed = 0,
   .SSBprec = SSBPREC_RELATIVISTICOPT,
@@ -83,6 +81,25 @@ const FstatOptionalArgs FstatOptionalArgsDefaults = {
   .collectTiming = 0,
   .resampFFTPowerOf2 = 1
 };
+
+static const char FstatTimingGenericHelp[] =
+  "%%%% ----- Generic F-stat timing model (all times in seconds) [see https://dcc.ligo.org/LIGO-T1600531-v4 for details] -----\n"
+  "%%%% tauF_eff:       effective total time per F-stat call to XLALComputeFstat() per detector per output frequency bin\n"
+  "%%%% tauF_core:      core time per output frequency bin per detector, excluding time to compute the buffer\n"
+  "%%%% tauF_buffer:    time per detector per frequency bin to re-compute all buffered quantities once\n"
+  "%%%% NFbin:          (average over F-stat calls) number of F-stat output frequency bins\n"
+  "%%%% Ndet:           number of detectors\n"
+  "%%%%\n"
+  "%%%% => generic F-stat timing:\n"
+  "%%%% tauF_eff = tauF_core + b * tauF_buffer\n"
+  "%%%% where 'b' denotes the fraction of times per call to XLALComputeFstat() the buffer needed to be recomputed\n"
+  "%%%%\n"
+  "%%%% NCalls:         number of F-stat calls we average over\n"
+  "%%%% NBufferMisses:  number of times the buffer needed to be recomputed\n"
+  "%%%% ==> b = NBufferMisses / NCalls\n"
+  "%%%% All timing numbers are averaged over repeated calls to XLALComputeFstat(for fixed-setup).\n"
+  "";
+
 
 // ==================== Function definitions =================== //
 
@@ -921,8 +938,10 @@ XLALDestroyFstatResults ( FstatResults* Fstats  ///< [in] #FstatResults structur
 
 ///
 /// Add +4 to any multi-detector or per-detector 2F values computed by XLALComputeFstat().
+///
 /// This is for compatibility with programs which expect this normalisation if SFTs do not
-/// contain noise, e.g. \c lalapps_ComputeFstatistic with the \c --SignalOnly option.
+/// contain noise, e.g. \c lalapps_ComputeFstatistic_v2 historically used to do so
+/// with the (now removed) \c --SignalOnly option.
 ///
 int
 XLALAdd4ToFstatResults ( FstatResults* Fstats    ///< [in/out] #FstatResults structure.

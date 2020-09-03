@@ -1290,11 +1290,11 @@ static int IMRPhenomXHM_MultiMode(
         *hptilde = XLALCreateCOMPLEX16FrequencySeries("hptilde: FD waveform", &(ligotimegps_zero), 0.0, deltaF, &lalStrainUnit, n);
         if (!(hptilde)){  XLAL_ERROR(XLAL_EFUNC);}
         memset((*hptilde)->data->data, 0, n * sizeof(COMPLEX16));
-        XLALUnitDivide(&(*hptilde)->sampleUnits, &(*hptilde)->sampleUnits, &lalSecondUnit);
+        XLALUnitMultiply(&(*hptilde)->sampleUnits, &(*hptilde)->sampleUnits, &lalSecondUnit);
         *hctilde = XLALCreateCOMPLEX16FrequencySeries("hctilde: FD waveform",  &(ligotimegps_zero), 0.0, deltaF, &lalStrainUnit, n);
         if (!(hctilde)){ XLAL_ERROR(XLAL_EFUNC);}
         memset((*hctilde)->data->data, 0, n * sizeof(COMPLEX16));
-        XLALUnitDivide(&(*hctilde)->sampleUnits, &(*hctilde)->sampleUnits, &lalSecondUnit);
+        XLALUnitMultiply(&(*hctilde)->sampleUnits, &(*hctilde)->sampleUnits, &lalSecondUnit);
         init = 1;
       }
       /* Skip 22 mode if it was only required for the mixing of the 32 */
@@ -1415,15 +1415,16 @@ static int IMRPhenomXHM_MultiMode2(
   /* Coalescence time is fixed to t=0, shift by overall length in time. */
   //XLAL_CHECK(XLALGPSAdd(&ligotimegps_zero, -1. / pWF->deltaF), XLAL_EFUNC, "Failed to shift the coalescence time to t=0. Tried to apply a shift of -1/df with df = %g.", pWF->deltaF);
   size_t n = (htildelm)->data->length;
+  XLAL_CHECK(XLALGPSAdd(&ligotimegps_zero, -1. / pWF->deltaF), XLAL_EFUNC, "Failed to shift the coalescence time to t=0. Tried to apply a shift of -1/df with df = %g.", pWF->deltaF);
   *hptilde = XLALCreateCOMPLEX16FrequencySeries("hptilde: FD waveform", &(ligotimegps_zero), 0.0, pWF->deltaF, &lalStrainUnit, n);
   if (!(hptilde)){   XLAL_ERROR(XLAL_EFUNC);}
   memset((*hptilde)->data->data, 0, n * sizeof(COMPLEX16));  // what is this for??
-  XLALUnitDivide(&(*hptilde)->sampleUnits, &(*hptilde)->sampleUnits, &lalSecondUnit); // what does it do?
+  XLALUnitMultiply(&(*hptilde)->sampleUnits, &(*hptilde)->sampleUnits, &lalSecondUnit); // what does it do?
 
   *hctilde = XLALCreateCOMPLEX16FrequencySeries("hctilde: FD waveform",  &(ligotimegps_zero), 0.0, pWF->deltaF, &lalStrainUnit, n);
   if (!(hctilde)){ XLAL_ERROR(XLAL_EFUNC);}
   memset((*hctilde)->data->data, 0, n * sizeof(COMPLEX16));
-  XLALUnitDivide(&(*hctilde)->sampleUnits, &(*hctilde)->sampleUnits, &lalSecondUnit);
+  XLALUnitMultiply(&(*hctilde)->sampleUnits, &(*hctilde)->sampleUnits, &lalSecondUnit);
 
   #if DEBUG == 1
   printf("\nlength htildelm = %zu\n", n);

@@ -1,11 +1,13 @@
 AC_PREREQ([2.63])
-AC_INIT([LALApps],[6.25.1.1],[lal-discuss@ligo.org])
+AC_INIT([LALApps],[6.26.1.1],[lal-discuss@ligo.org])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_SRCDIR([src/lalapps/lalapps.c])
 AC_CONFIG_AUX_DIR([gnuscripts])
 AC_CONFIG_MACRO_DIR([gnuscripts])
 AC_CONFIG_FILES([\
   Makefile \
+  conda/Makefile \
+  conda/meta.yaml.in \
   debian/Makefile \
   debian/control \
   doxygen/Makefile \
@@ -55,14 +57,16 @@ AM_INIT_AUTOMAKE([ \
 ])
 
 # version requirements
-MIN_LAL_VERSION="6.21.0"
+MIN_FRAMEL_VERSION="8.39.2"
+MIN_LAL_VERSION="7.0.0"
 MIN_LALFRAME_VERSION="1.5.0"
 MIN_LALMETAIO_VERSION="1.6.0"
-MIN_LALSIMULATION_VERSION="1.10.0"
+MIN_LALSIMULATION_VERSION="2.1.0"
 MIN_LALBURST_VERSION="1.5.3"
 MIN_LALINSPIRAL_VERSION="1.10.0"
-MIN_LALPULSAR_VERSION="1.18.2"
-MIN_LALINFERENCE_VERSION="1.11.4"
+MIN_LALPULSAR_VERSION="2.0.0"
+MIN_LALINFERENCE_VERSION="2.0.0"
+AC_SUBST([MIN_FRAMEL_VERSION])
 AC_SUBST([MIN_LAL_VERSION])
 AC_SUBST([MIN_LALFRAME_VERSION])
 AC_SUBST([MIN_LALMETAIO_VERSION])
@@ -89,7 +93,7 @@ LALAPPS_ENABLE_CONDOR
 LALAPPS_ENABLE_STATIC_BINARIES
 
 LALAPPS_ENABLE_FFTW
-LALAPPS_ENABLE_FRAME
+LALAPPS_ENABLE_FRAMEL
 LALSUITE_ENABLE_CFITSIO
 LALAPPS_ENABLE_PSS
 LALAPPS_ENABLE_GDS
@@ -210,28 +214,28 @@ fi
 LALSUITE_ENABLE_MODULE([GDS])
 
 # check for libFrame
-if test "${frame}" = "true"; then
-  PKG_CHECK_MODULES([FRAME],[libframe],[true],[false])
-  lal_pre_frame_LIBS="$LIBS"
-  LALSUITE_ADD_FLAGS([C],[],[${FRAME_LIBS}])
-  AC_SEARCH_LIBS([FrLibIni],[Frame],,
-                 [AC_MSG_WARN([could not find the frame library])]
-                 [frame="false"]
+if test "${framel}" = "true"; then
+  PKG_CHECK_MODULES([FRAMEL],[framel],[true],[false])
+  lal_pre_framel_LIBS="$LIBS"
+  LALSUITE_ADD_FLAGS([C],[],[${FRAMEL_LIBS}])
+  AC_SEARCH_LIBS([FrLibIni],[framel],,
+                 [AC_MSG_WARN([could not find the FrameL library])]
+                 [framel="false"]
                  [lalframe="false"]
-                 [LIBS="$lal_pre_frame_LIBS"])
+                 [LIBS="$lal_pre_framel_LIBS"])
 fi
 
-# check for libFrame headers
-if test "${frame}" = "true"; then
-  lal_pre_frame_CPPFLAGS="$CPPFLAGS"
-  LALSUITE_ADD_FLAGS([C],[${FRAME_CFLAGS}],[])
+# check for FrameL headers
+if test "${framel}" = "true"; then
+  lal_pre_framel_CPPFLAGS="$CPPFLAGS"
+  LALSUITE_ADD_FLAGS([C],[${FRAMEL_CFLAGS}],[])
   AC_CHECK_HEADERS([FrameL.h],,
                    [AC_MSG_WARN([could not find the FrameL.h header])]
-                   [frame="false"]
+                   [framel="false"]
                    [lalframe="false"]
-                   [CPPFLAGS="$lal_pre_frame_CPPFLAGS"])
+                   [CPPFLAGS="$lal_pre_framel_CPPFLAGS"])
 fi
-LALSUITE_ENABLE_MODULE([FRAME])
+LALSUITE_ENABLE_MODULE([FRAMEL])
 
 # check for cfitsio
 LALSUITE_USE_CFITSIO
@@ -330,7 +334,7 @@ LALApps has now been successfully configured:
 
 * Python support is $PYTHON_ENABLE_VAL
 * FFTW library support is $FFTW_ENABLE_VAL
-* Frame library support is $FRAME_ENABLE_VAL
+* FrameL library support is $FRAMEL_ENABLE_VAL
 * LALFrame library support is $LALFRAME_ENABLE_VAL
 * LALMetaIO library support is $LALMETAIO_ENABLE_VAL
 * LALSimulation library support is $LALSIMULATION_ENABLE_VAL

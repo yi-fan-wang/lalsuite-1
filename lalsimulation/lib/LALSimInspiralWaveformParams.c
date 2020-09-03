@@ -142,6 +142,10 @@ DEFINE_INSERT_FUNC(NonGRParitylog10Aeff, REAL8, "parity_log10Aeff_phi", 0)
 DEFINE_INSERT_FUNC(NonGRParitybeta, INT4, "parity_beta_mu", 0)
 DEFINE_INSERT_FUNC(NonGRParityAh, REAL8, "parity_Aeff_amp", 0)
 DEFINE_INSERT_FUNC(NonGRParitybetanu, INT4, "parity_beta_nu", 0)
+DEFINE_INSERT_FUNC(EnableLIV, INT4, "liv", 0)
+DEFINE_INSERT_FUNC(NonGRLIVLogLambdaEff, REAL8, "log10lambda_eff", 100)
+DEFINE_INSERT_FUNC(NonGRLIVASign, REAL8, "LIV_A_sign", 1)
+DEFINE_INSERT_FUNC(NonGRLIVAlpha, REAL8, "nonGR_alpha", 0)
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -280,6 +284,7 @@ DEFINE_LOOKUP_FUNC(NonGRAlphaPPE6, REAL8, "alphaPPE6", 0)
 DEFINE_LOOKUP_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_LOOKUP_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_LOOKUP_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
+<<<<<<< HEAD
 DEFINE_LOOKUP_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_LOOKUP_FUNC(NonGRMassiveGravitonMass, REAL8, "mgmass", 0)
 DEFINE_LOOKUP_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_phi", 0)
@@ -287,6 +292,12 @@ DEFINE_LOOKUP_FUNC(NonGRParitylog10Aeff, REAL8, "parity_log10Aeff_phi", 0)
 DEFINE_LOOKUP_FUNC(NonGRParitybeta, INT4, "parity_beta_mu", 0)
 DEFINE_LOOKUP_FUNC(NonGRParityAh, REAL8, "parity_Aeff_amp", 0)
 DEFINE_LOOKUP_FUNC(NonGRParitybetanu, INT4, "parity_beta_nu", 0)
+=======
+DEFINE_LOOKUP_FUNC(EnableLIV, INT4, "liv", 0)
+DEFINE_LOOKUP_FUNC(NonGRLIVLogLambdaEff, REAL8, "log10lambda_eff", 100)
+DEFINE_LOOKUP_FUNC(NonGRLIVASign, REAL8, "LIV_A_sign", 1)
+DEFINE_LOOKUP_FUNC(NonGRLIVAlpha, REAL8, "nonGR_alpha", 0)
+>>>>>>> master
 
 /* NLTides parameters */
 /* used within LALSimInspiralTaylorF2NLTides.c */
@@ -416,6 +427,7 @@ DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE6, REAL8, "alphaPPE6", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE6, REAL8, "betaPPE6", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRAlphaPPE7, REAL8, "alphaPPE7", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRBetaPPE7, REAL8, "betaPPE7", 0)
+<<<<<<< HEAD
 DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonLambda, REAL8, "mglambda", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRMassiveGravitonMass, REAL8, "mgmass", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParityAeff, REAL8, "parity_Aeff_phi", 0)
@@ -423,6 +435,12 @@ DEFINE_ISDEFAULT_FUNC(NonGRParitylog10Aeff, REAL8, "parity_log10Aeff_phi", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParitybeta, REAL8, "parity_beta_mu", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParityAh, REAL8, "parity_Aeff_amp", 0)
 DEFINE_ISDEFAULT_FUNC(NonGRParitybetanu, REAL8, "parity_beta_nu", 0)
+=======
+DEFINE_ISDEFAULT_FUNC(EnableLIV, INT4, "liv", 0)
+DEFINE_ISDEFAULT_FUNC(NonGRLIVLogLambdaEff, REAL8, "log10lambda_eff", 100)
+DEFINE_ISDEFAULT_FUNC(NonGRLIVASign, REAL8, "LIV_A_sign", 1)
+DEFINE_ISDEFAULT_FUNC(NonGRLIVAlpha, REAL8, "nonGR_alpha", 0)
+>>>>>>> master
 /* SEOBNRv4P */
 DEFINE_ISDEFAULT_FUNC(EOBChooseNumOrAnalHamDer, INT4, "EOBChooseNumOrAnalHamDer", 1)
 

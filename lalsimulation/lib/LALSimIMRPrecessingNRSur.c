@@ -1832,6 +1832,9 @@ static PrecessingNRSurData* PrecessingNRSur_core(
 
     // Load surrogate data if needed. If not, just access the loaded data.
     PrecessingNRSurData *__sur_data = PrecessingNRSur_LoadData(approximant);
+    if (!__sur_data->setup) {
+        XLAL_ERROR_NULL(XLAL_EFAILED, "Error loading surrogate data.\n");
+    }
 
     // Make sure we didn't request any unavailable modes
     int ell, m;
@@ -1855,7 +1858,10 @@ static PrecessingNRSurData* PrecessingNRSur_core(
     int ret = PrecessingNRSur_IntegrateDynamics(dynamics_data, q, chiA0, chiB0,
         omega_ref, init_orbphase, init_quat, LALparams,
         __sur_data->PrecessingNRSurVersion);
-    if(ret != XLAL_SUCCESS) XLAL_ERROR_NULL(XLAL_FAILURE, "Failed to integrate dynamics");
+    if(ret != XLAL_SUCCESS) {
+        XLALFree(dynamics_data);
+        XLAL_ERROR_NULL(XLAL_FAILURE, "Failed to integrate dynamics");
+    }
 
     // Put output into appropriate vectors
     int i, j;
@@ -2173,6 +2179,7 @@ int XLALSimInspiralPrecessingNRSurPolarizations(
     int ret = get_dimless_omega(&omegaMin_dimless, &omegaRef_dimless,
         fMin, fRef, Mtot_sec);
     if(ret != XLAL_SUCCESS) {
+        if(ModeArray) XLALDestroyValue(ModeArray);
         XLAL_ERROR(XLAL_EFUNC, "Failed to process fMin/fRef");
     }
 
@@ -2196,6 +2203,7 @@ int XLALSimInspiralPrecessingNRSurPolarizations(
             ModeArray, LALparams, approximant);
 
     if (!h_inertial_modes) {
+        if(ModeArray) XLALDestroyValue(ModeArray);
         return XLAL_FAILURE;
     }
 
@@ -2432,6 +2440,7 @@ SphHarmTimeSeries *XLALSimInspiralPrecessingNRSurModes(
     int ret = get_dimless_omega(&omegaMin_dimless, &omegaRef_dimless,
         fMin, fRef, Mtot_sec);
     if(ret != XLAL_SUCCESS) {
+        if(ModeArray) XLALDestroyValue(ModeArray);
         XLAL_ERROR_NULL(XLAL_EFUNC, "Failed to process fMin/fRef");
     }
 
@@ -2454,6 +2463,7 @@ SphHarmTimeSeries *XLALSimInspiralPrecessingNRSurModes(
             chiA0, chiB0, omegaRef_dimless, init_orbphase, init_quat,
             ModeArray, LALparams, approximant);
     if (!h_inertial) {
+        if(ModeArray) XLALDestroyValue(ModeArray);
         XLAL_PRINT_INFO("PrecessingNRSur_core failed!");
         return hlms;
     }
@@ -2679,6 +2689,9 @@ int XLALPrecessingNRSurDynamics(
 
     // Load surrogate data if needed. If not, just access the loaded data.
     PrecessingNRSurData *__sur_data = PrecessingNRSur_LoadData(approximant);
+    if (!__sur_data->setup) {
+        XLAL_ERROR(XLAL_EFAILED, "Error loading surrogate data.\n");
+    }
 
     // Input spins at reference epoch
     // The input values are in the coorbital frame at omegaRef_dimless, but
@@ -2707,6 +2720,7 @@ int XLALPrecessingNRSurDynamics(
             chiA0, chiB0, omegaRef_dimless, init_orbphase, init_quat,
             LALparams, __sur_data->PrecessingNRSurVersion);
     if(ret != XLAL_SUCCESS) {
+        XLALFree(dynamics_data);
         XLAL_ERROR(XLAL_FAILURE, "Failed to integrate dynamics");
     }
 

@@ -12,6 +12,8 @@ packages organized by problem domain or source classification. This Python
 package provides a standalone, dependency-free binary distribution of the
 libraries and Python modules in LALSuite for Linux and macOS.
 
+Installing LALSuite from the Python Package Index requires pip >= 19.3.
+
 To install, simply run::
 
     $ pip install lalsuite
@@ -96,6 +98,7 @@ class build_py(_build_py):
 stub = '''\
 #!python
 import os
+import sys
 try:
     from importlib import resources
 except ImportError:

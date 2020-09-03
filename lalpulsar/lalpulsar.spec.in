@@ -1,6 +1,6 @@
 %define nightly @NIGHTLY_VERSION@%{nil}
 %define _sysconfdir %{_prefix}/etc
-%define release 2
+%define release 1
 %define configure_opts --enable-cfitsio GSL_LIBS="-lgsl" CFITSIO_LIBS="-lcfitsio"
 
 %if "%{?nightly:%{nightly}}%{!?nightly:0}" == "%{nil}"
@@ -33,7 +33,7 @@ BuildRequires: make
 BuildRequires: pkgconfig >= 0.18.0
 
 # swig
-BuildRequires: swig >= 3.0.9
+BuildRequires: swig >= @MIN_SWIG_VERSION@
 
 # python2
 BuildRequires: python2-rpm-macros
@@ -41,7 +41,7 @@ BuildRequires: python-devel
 BuildRequires: python2-astropy
 BuildRequires: python2-lal >= @MIN_LAL_VERSION@
 BuildRequires: python2-mock
-BuildRequires: python2-numpy
+BuildRequires: python2-numpy >= @MIN_NUMPY_VERSION@
 BuildRequires: python-pathlib
 BuildRequires: pytest
 
@@ -53,7 +53,7 @@ BuildRequires: python%{python3_pkgversion}
 BuildRequires: python%{python3_pkgversion}-devel
 BuildRequires: python%{python3_pkgversion}-astropy
 BuildRequires: python%{python3_pkgversion}-lal >= @MIN_LAL_VERSION@
-BuildRequires: python%{python3_pkgversion}-numpy
+BuildRequires: python%{python3_pkgversion}-numpy >= @MIN_NUMPY_VERSION@
 BuildRequires: python%{python3_pkgversion}-pytest
 
 # octave
@@ -96,7 +96,7 @@ Requires: %{name} = %{version}
 Requires: python
 Requires: python2-astropy
 Requires: python2-lal >= @MIN_LAL_VERSION@
-Requires: python2-numpy
+Requires: python2-numpy >= @MIN_NUMPY_VERSION@
 Provides: %{name}-python = %{version}-%{release}
 Obsoletes: %{name}-python < %{version}-%{release}
 %{?python_provide:%python_provide python2-%{name}}
@@ -111,7 +111,7 @@ Requires: %{name} = %{version}
 Requires: python%{python3_pkgversion}
 Requires: python%{python3_pkgversion}-astropy
 Requires: python%{python3_pkgversion}-lal >= @MIN_LAL_VERSION@
-Requires: python%{python3_pkgversion}-numpy
+Requires: python%{python3_pkgversion}-numpy >= @MIN_NUMPY_VERSION@
 %{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
 %description -n python%{python3_pkgversion}-%{name}
 This package provides the Python %{python3_version} bindings for LALPulsar.
@@ -142,8 +142,9 @@ cp -r . %py3dir
 pushd %py3dir
 rm -rfv python/%{name}/*.{la,lo,o} python/%{name}/.libs
 %configure %{configure_opts} --disable-doxygen --disable-gcc-flags --disable-swig-octave --enable-swig-python PYTHON=%{__python3}
-%{__make} %{?_smp_mflags} V=1 -C swig
-%{__make} %{?_smp_mflags} V=1 -C python/%{name}
+%{__make} V=1 -C swig
+%{__make} V=1 -C python/%{name}
+%{__make} V=1 -C bin bin_PROGRAMS="" dist_bin_SCRIPTS=""
 popd
 
 %check
@@ -207,6 +208,9 @@ rm -Rf ${RPM_BUILD_DIR}/%{name}-%{version}%{?nightly:-%{nightly}}
 
 # dates should be formatted using: 'date +"%a %b %d %Y"'
 %changelog
+* Mon Jun 08 2020 Adam Mercer <adam.mercer@ligo.org> 2.0.0-1
+- Update for 2.0.0
+
 * Mon Dec 09 2019 Adam Mercer <adam.mercer@ligo.org> 1.18.2-2
 - Packaging updates
 

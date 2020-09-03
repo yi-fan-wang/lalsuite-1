@@ -4,15 +4,21 @@ echo "--- Test compiler is $0 ---"
 echo
 
 # Parse command line
+script_extn="$1"
+echo "script_extn=${script_extn}"
+shift
 skip_tests="$1"
-test="$2"
-echo "skip_tests='${skip_tests}'"
-echo "test='${test}'"
+echo "skip_tests=${skip_tests}"
+shift
+flags=""
+while [ "X$2" != X ]; do
+    flags="${flags} '$1'"
+    shift
+done
+test="$1"
+echo "flags=${flags}"
+echo "test=${test}"
 echo
-if [ "X#2" = X ]; then
-  echo "Invalid command line"
-  exit 1
-fi
 
 # Check for required environment variables
 if [ "X${LAL_TEST_SRCDIR}" = X ]; then
@@ -24,13 +30,13 @@ if [ "X${LAL_TEST_BUILDDIR}" = X ]; then
   exit 1
 fi
 
-# Test script name and location
-scriptname=$(expr "X${test}" : "X.*/\(test[^/]*\)\.sh$")
-if [ "X${scriptname}" = X ]; then
+# Test script name, location, and extension
+script_name=$(expr "X${test}" : "X.*/\(test[^/]*\)\.${script_extn}$")
+if [ "X${script_name}" = X ]; then
   echo "Could not parse name of test script from '${test}'"
   exit 1
 fi
-script="${LAL_TEST_SRCDIR}/${scriptname}.sh"
+script="${LAL_TEST_SRCDIR}/${script_name}.${script_extn}"
 if [ ! -f "${script}" ]; then
   echo "Test script '${script}' does not exist"
   exit 1
@@ -39,17 +45,29 @@ if [ -x "${script}" ]; then
   echo "Test script '${script}' should not be executable"
   exit 1
 fi
+case "${script_extn}" in
+    sh)
+        cmdline="time bash ${flags} -c 'set -e; source ${script}'"
+        ;;
+    py)
+        cmdline="time ${PYTHON} ${flags} '${script}'"
+        ;;
+    *)
+        echo "Test script '${script}' does not have a recognised extension"
+        exit 1
+        ;;
+esac
 
 # Skip test if requested
 case " ${skip_tests} " in
-    *" ${scriptname}.sh "*)
+    *" ${script_name}.${script_extn} "*)
         echo "Skipping test ${test}"
         exit 77
         ;;
 esac
 
 # Create directory for test
-testdir="${LAL_TEST_BUILDDIR}/${scriptname}.testdir"
+testdir="${LAL_TEST_BUILDDIR}/${script_name}.testdir"
 rm -rf "${testdir}"
 if [ -d "${testdir}" ]; then
   echo "Could not remove test directory '${testdir}'"
@@ -58,7 +76,7 @@ fi
 mkdir -p "${testdir}"
 
 # Extract any reference results, and check validity
-reftarball="${LAL_TEST_SRCDIR}/${scriptname}.tar.gz"
+reftarball="${LAL_TEST_SRCDIR}/${script_name}.tar.gz"
 if [ -f ${reftarball} ]; then
     echo "Extracting reference tarball ${reftarball}"
     cd "${testdir}"
@@ -106,17 +124,19 @@ ls -l "${testdir}"
 echo
 
 # Run test in test directory
-echo "--- Running test ${test} ---"
+echo "--- Running test ${test}: ${cmdline} ---"
 echo
 cd "${testdir}"
-export TIMEFORMAT=$'\n\n\nreal %R\nuser %R\nsys  %R'
-time bash -c "\
-set -e; \
-export LAL_TEST_SRCDIR=/dev/null/; \
-export LAL_TEST_BUILDDIR=/dev/null/; \
-export srcdir=/dev/null/; \
-export builddir=/dev/null/; \
-source '${script}'" && status=$? || status=$?
+set +e
+(
+    export LAL_TEST_SRCDIR=/dev/null/
+    export LAL_TEST_BUILDDIR=/dev/null/
+    export srcdir=/dev/null/
+    export builddir=/dev/null/
+    eval ${cmdline}
+)
+status=$?
+set -e
 cd "${LAL_TEST_BUILDDIR}"
 echo
 case $status in

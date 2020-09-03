@@ -5,7 +5,6 @@
 #
 
 set -e
-pushd ${SRC_DIR}
 
 # when running on gitlab-ci, we are not using a production
 # build, so we don't want to use NDEBUG
@@ -13,22 +12,23 @@ export CPPFLAGS="${CPPFLAGS} -UNDEBUG"
 
 # configure only python bindings and pure-python extras
 ./configure \
-	--prefix=$PREFIX \
 	--disable-doxygen \
 	--disable-swig-iface \
 	--enable-help2man \
 	--enable-mpi \
 	--enable-python \
 	--enable-swig-python \
-	--enable-silent-rules \
+	--prefix=$PREFIX \
 ;
 
-# build
-make -j ${CPU_COUNT} -C swig
-make -j ${CPU_COUNT} -C python
+# swig bindings
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C swig
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C swig install-exec-am
 
-# install
-make -j ${CPU_COUNT} -C swig install-exec-am  # swig bindings
-make -j ${CPU_COUNT} -C python install  # pure-python extras
+# python modules
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C python
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C python install
 
-popd
+# python scripts
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C bin bin_PROGRAMS="" dist_bin_SCRIPTS=""
+make -j ${CPU_COUNT} V=1 VERBOSE=1 -C bin bin_PROGRAMS="" dist_bin_SCRIPTS="" install
