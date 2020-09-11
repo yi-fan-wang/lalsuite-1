@@ -6261,7 +6261,7 @@ int XLALSimInspiralApproximantAcceptTestGRParams(Approximant approx){
   return testGR_accept;
 };
 
-<<<<<<< HEAD
+
 int XLALSimMassiveGravitonDispersionEffect(
                        COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
                        COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
@@ -6319,31 +6319,6 @@ int XLALSimParityViolationEffect(
   REAL8 deltaPhi1, tempVal;
   UINT4 len, i;
   len = (*hptilde)->data->length;
-=======
-/* Function for introducing Lorentz violating changes in FD phase; calculates eqns. 30 & 32 of arxiv 1110.2720 for the LV phase term in FD and multiplies to h+ and hx */
-int XLALSimLorentzInvarianceViolationTerm(
-                                          COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
-                                          COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
-                                          REAL8 m1,                           /**< Mass 1 in solar masses */
-                                          REAL8 m2,                           /**< Mass 2 in solar masses */
-                                          REAL8 r,                            /**< distance in metres*/
-                                          LALDict *LALparams                     /**< LAL dictionary containing accessory parameters */
-                                          )
-{
-  REAL8 f0, f, df;
-  COMPLEX16 hplus, hcross, tmpExp;
-  REAL8 M, eta, zeta, dPhiPref, Mc, tmpVal;
-  UINT4 len, i;
-  M = m1+m2;
-  eta = m1*m2/(M*M);
-  Mc = M*pow(eta, 0.6);
-  len = (*hptilde)->data->length;
-
-  REAL8 lambda_eff = pow(10,XLALSimInspiralWaveformParamsLookupNonGRLIVLogLambdaEff(LALparams)); /* Effective wavelength-like parameter in phase in metres */
-  REAL8 nonGR_alpha = XLALSimInspiralWaveformParamsLookupNonGRLIVAlpha(LALparams);   /* Exponent defined in terms of PN order characterising LIV*/
-  REAL8 LIV_A_sign = XLALSimInspiralWaveformParamsLookupNonGRLIVASign(LALparams);   /* Sign of A determining the sign of LV phase */
-
->>>>>>> master
   if ((*hctilde)->data->length != len) {
     XLALPrintError("Lengths of plus and cross polarization series do not agree \n");
     XLAL_ERROR(XLAL_EBADLEN);
@@ -6365,7 +6340,6 @@ int XLALSimLorentzInvarianceViolationTerm(
   if (f0 == 0.0)
       k=1;
 
-<<<<<<< HEAD
   if (parity_beta != -1) {
     tempVal =  parity_Aeff * pow(2.0 * LAL_HBAR_SI, parity_beta) * pow(LAL_PI,parity_beta + 1.0)/ (parity_beta+1.0)/ LAL_H0_SI; // Dealing with the frequency dependence below
     for (i=k; i<len; i++) {
@@ -6446,8 +6420,50 @@ int XLALSimParityViolationEffectAmpBirefringence(
   return XLAL_SUCCESS;
 }
 
+/* Function for introducing Lorentz violating changes in FD phase; calculates eqns. 30 & 32 of arxiv 1110.2720 for the LV phase term in FD and multiplies to h+ and hx */
+int XLALSimLorentzInvarianceViolationTerm(
+                                          COMPLEX16FrequencySeries **hptilde, /**< Frequency-domain waveform h+ */
+                                          COMPLEX16FrequencySeries **hctilde, /**< Frequency-domain waveform hx */
+                                          REAL8 m1,                           /**< Mass 1 in solar masses */
+                                          REAL8 m2,                           /**< Mass 2 in solar masses */
+                                          REAL8 r,                            /**< distance in metres*/
+                                          LALDict *LALparams                     /**< LAL dictionary containing accessory parameters */
+                                          )
+{
+  REAL8 f0, f, df;
+  COMPLEX16 hplus, hcross, tmpExp;
+  REAL8 M, eta, zeta, dPhiPref, Mc, tmpVal;
+  UINT4 len, i;
+  M = m1+m2;
+  eta = m1*m2/(M*M);
+  Mc = M*pow(eta, 0.6);
+  len = (*hptilde)->data->length;
 
-=======
+  REAL8 lambda_eff = pow(10,XLALSimInspiralWaveformParamsLookupNonGRLIVLogLambdaEff(LALparams)); /* Effective wavelength-like parameter in phase in metres */
+  REAL8 nonGR_alpha = XLALSimInspiralWaveformParamsLookupNonGRLIVAlpha(LALparams);   /* Exponent defined in terms of PN order characterising LIV*/
+  REAL8 LIV_A_sign = XLALSimInspiralWaveformParamsLookupNonGRLIVASign(LALparams);   /* Sign of A determining the sign of LV phase */
+
+  if ((*hctilde)->data->length != len) {
+    XLALPrintError("Lengths of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EBADLEN);
+  }
+
+  f0 = (*hptilde)->f0;
+  if ((*hctilde)->f0 != f0) {
+    XLALPrintError("Starting frequencies of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  df = (*hptilde)->deltaF;
+  if ((*hctilde)->deltaF != df) {
+    XLALPrintError("Frequency steps of plus and cross polarization series do not agree \n");
+    XLAL_ERROR(XLAL_EINVAL);
+  }
+
+  UINT4 k = 0;
+  if (f0 == 0.0)
+      k=1;
+
   if (nonGR_alpha == 1) {
     zeta = LIV_A_sign*LAL_PI*r/lambda_eff; /*Eqn. (32) of arxiv:1110.2720*/
     dPhiPref = zeta*log(LAL_PI*Mc*LAL_MTSUN_SI); /*Eqn. (31) of arxiv:1110.2720;the frequency dependence is treated below*/
@@ -6477,7 +6493,7 @@ int XLALSimParityViolationEffectAmpBirefringence(
   return XLAL_SUCCESS;
 }
 
->>>>>>> master
+
 /** @} */
 
 /**
