@@ -1132,8 +1132,36 @@ INT4 XLALSimIMREOBHybridAttachRingdown(
                                        REAL8Vector *timeVec,    /**<< Vector containing the time values */
                                        REAL8Vector *matchrange /**<< Time values chosen as points for performing comb matching */
 );
-
+int XLALSimSEOBNRE(
+                   REAL8TimeSeries **hplus,     /**<< OUTPUT, +-polarization waveform */
+                   REAL8TimeSeries **hcross,    /**<< OUTPUT, x-polarization waveform */
+                   const REAL8     phiC,        /**<< coalescence orbital phase (rad) */
+                   REAL8           deltaT,      /**<< sampling time step */
+                   const REAL8     m1SI,        /**<< mass-1 in SI unit */
+                   const REAL8     m2SI,        /**<< mass-2 in SI unit */
+                   const REAL8     fMin,        /**<< starting frequency (Hz) */
+                   const REAL8     e0,          /**<< eccentricity at starting GW frequency (Hz) */
+                   const REAL8     distance,           /**<< distance in SI unit */
+                   const REAL8     inc,         /**<< inclination angle */
+                   const REAL8     spin1z,      /**<< z-component of spin-1, dimensionless */
+                   const REAL8     spin2z       /**<< z-component of spin-2, dimensionless */
+);
 void PNwaveformPRD544813rdotc_22mode(double *hr,double *hi,
                                      const double x1,const double x2,const double x3, // test particle position
                                      const double v1,const double v2,const double v3, // test particle velocity
                                      const double eta); // symmetric mass ratio
+REAL8 XLALInspiralSpinFactorizedFlux_elip(
+                      REAL8Vector           *values, /**< dynamical variables */
+                      const REAL8   rphivalues[],   /**< dynamical varables, r, phi, pr, pphi */
+                      const REAL8   drphivalues[],   /**< dot dynamical varables, r, phi, pr, pphi */
+                      const REAL8           omega,   /**< orbital frequency */
+                      SpinEOBParams         *ak,     /**< physical parameters */
+                      const REAL8            H,      /**< real Hamiltonian */
+                      const int             lMax    /**< upper limit of the summation over l */
+                     );
+double EOBPNflux(const double m1,const double m2,         // we assume m1>m2
+          const double s1x,const double s1y,const double s1z,
+          const double s2x,const double s2y,const double s2z,
+      const double x1,const double x2,const double x3, // relative position
+      const double v1,const double v2,const double v3, // relative velocity
+      double *EOBPNfluxwoNQC);

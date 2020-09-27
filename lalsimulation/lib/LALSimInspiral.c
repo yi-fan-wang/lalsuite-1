@@ -850,7 +850,8 @@ int XLALSimInspiralChooseTDWaveform(
 
         case SEOBNRv1:
         case SEOBNREv1:
-            ret = XLALSimSEOBNRE(hplus, hcross, phiRef, deltaT, m1, m2, f_min, eccentricity, distance, inclination, S1z, S2z, 'None');
+            ret = XLALSimSEOBNRE(hplus, hcross, phiRef, deltaT, m1, m2, f_min, eccentricity, distance, inclination, S1z, S2z);
+            break;
         case SEOBNRv2_opt:
         case SEOBNRv2:
         case SEOBNRv4_opt:

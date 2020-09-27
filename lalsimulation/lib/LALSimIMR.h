@@ -383,8 +383,7 @@ int XLALSimSEOBNRE(
                    const REAL8     r,           /**<< distance in SI unit */
                    const REAL8     inc,         /**<< inclination angle */
                    const REAL8     spin1z,      /**<< z-component of spin-1, dimensionless */
-                   const REAL8     spin2z,       /**<< z-component of spin-2, dimensionless */
-                   const char       *jobtag
+                   const REAL8     spin2z       /**<< z-component of spin-2, dimensionless */
 );
 
 /* in module LALSimBHNSRemnantFits.c */

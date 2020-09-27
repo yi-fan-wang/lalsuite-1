@@ -11,7 +11,6 @@
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 
-#include <lal/LALSimIMR.h>
 #include "LALSimIMRSEOBNREv1.h"
 
 #ifdef newc
@@ -33,7 +32,6 @@ using namespace std;
 #endif
 
 #define debugOutput 0
-#define outputh22 1
 #define outputOmega 1
 /* Function Declaration */
 
@@ -308,13 +306,13 @@ int XLALSimSEOBNRE(
                    const REAL8     m2SI,        /**<< mass-2 in SI unit */
                    const REAL8     fMin,        /**<< starting frequency (Hz) */
                    const REAL8     e0,          /**<< eccentricity at starting GW frequency (Hz) */
-                   const REAL8     r,           /**<< distance in SI unit */
+                   const REAL8     distance,           /**<< distance in SI unit */
                    const REAL8     inc,         /**<< inclination angle */
                    const REAL8     spin1z,      /**<< z-component of spin-1, dimensionless */
-                   const REAL8     spin2z,      /**<< z-component of spin-2, dimensionless */
-                   const char      *jobtag
+                   const REAL8     spin2z       /**<< z-component of spin-2, dimensionless */
 )
-{
+{   
+    int outputh22 = 1;
     /* If either spin > 0.6, model not available, exit */
     if ( spin1z > 0.6 || spin2z > 0.6 )
     {
@@ -368,10 +366,6 @@ int XLALSimSEOBNRE(
     COMPLEX16Vector modefreqVec;
     COMPLEX16      modeFreq;
     
-    /* Spin-weighted spherical harmonics */
-    COMPLEX16  MultSphHarmP;
-    COMPLEX16  MultSphHarmM;
-    
     /* We will have to switch to a high sample rate for ringdown attachment */
     REAL8 deltaTHigh;
     UINT4 resampFac;
@@ -392,8 +386,6 @@ int XLALSimSEOBNRE(
     /* Needed to attach ringdown at the appropriate point */
     UINT4 peakIdx = 0, finalIdx = 0;
     
-    /* (2,2) and (2,-2) spherical harmonics needed in (h+,hx) */
-    REAL8 y_1, y_2, z1, z2;
     
     /* Variables for the integrator */
     ark4GSLIntegrator       *integrator = NULL;
@@ -425,7 +417,7 @@ int XLALSimSEOBNRE(
     mTScaled = mTotal * LAL_MTSUN_SI;
     eta    = m1 * m2 / (mTotal*mTotal);
     
-    amp0 = mTotal * LAL_MRSUN_SI / r;
+    amp0 = mTotal * LAL_MRSUN_SI / distance;
     
     /* TODO: Insert potentially necessary checks on the arguments */
     
@@ -958,12 +950,12 @@ int XLALSimSEOBNRE(
         hLM *= hNQC;
         //if ( l == 2 && m == 2 ) elliptic correction
         {
-            double r,phi,pr,pphi,rdot,phidot;
+            double r,phi,rdot,phidot;//pr,pphi,
             values->data[1] += sSub;
             r = values->data[0];
             phi = values->data[1];
-            pr = values->data[2];
-            pphi = values->data[3];
+            //pr = values->data[2];
+            //pphi = values->data[3];
             double dydt[4],ttmp=0;
             XLALSpinAlignedHcapDerivative(ttmp, values->data, dydt, &seobParams);
             values->data[1] -= sSub;
@@ -1085,8 +1077,8 @@ int XLALSimSEOBNRE(
     prVecPrint = XLALCreateREAL8Vector( (INT4)rVec.length );
     pPhiVecPrint = XLALCreateREAL8Vector( (INT4)rVec.length );
     timePrint = XLALCreateREAL8Vector( (INT4)rVec.length );
-    double t_ini;
-    t_ini = XLALGPSGetREAL8(&tc);
+    //double t_ini;
+    //t_ini = XLALGPSGetREAL8(&tc);
 
     for ( i = 0; i < (INT4)rVec.length; i++ )
     {
@@ -1126,19 +1118,6 @@ int XLALSimSEOBNRE(
         sigImVec->data[i] = amp0 * cimag(hLM);
     }
 
-     // Print out dynamics to file XXX_v1_jobtag.txt....
-    if (strcmp(jobtag, "None") != 0)
-    {
-        char dynamicout[256];
-        sprintf(dynamicout, "%s%s%s", "dynamic_v1_", jobtag, ".txt");
-        FILE *out1 = fopen( dynamicout, "w" );
-        for ( i = 0; i < (INT4)rVec.length; i++ )
-        {
-            // time, omega, r, pr, phi, pphi
-            fprintf( out1 , "%.16e %.16e %.16e %.16e %.16e %.16e\n",timePrint->data[i] + t_ini , omegaPrint->data[i] ,rVecPrint->data[i], prVecPrint->data[i], phiVecPrint->data[i], pPhiVecPrint->data[i]);
-        }
-        fclose(out1);
-    }
     XLALDestroyREAL8Vector(omegaPrint);
     XLALDestroyREAL8Vector(timePrint);
     XLALDestroyREAL8Vector(rVecPrint);
@@ -1166,34 +1145,39 @@ int XLALSimSEOBNRE(
     REAL8TimeSeries *hPlusTS  = XLALCreateREAL8TimeSeries( "H_PLUS", &tc, 0.0, deltaT, &lalStrainUnit, sigReVec->length );
     REAL8TimeSeries *hCrossTS = XLALCreateREAL8TimeSeries( "H_CROSS", &tc, 0.0, deltaT, &lalStrainUnit, sigImVec->length );
     
-    /* TODO change to using XLALSimAddMode function to combine modes */
-    /* For now, calculate -2Y22 * h22 + -2Y2-2 * h2-2 directly (all terms complex) */
-    /* Compute spin-weighted spherical harmonics and generate waveform */
-    REAL8 coa_phase = 0.0;
-    
-    MultSphHarmP = XLALSpinWeightedSphericalHarmonic( inc, coa_phase, -2, 2, 2 ); // -2Y22(inc, coa_phase)
-    MultSphHarmM = XLALSpinWeightedSphericalHarmonic( inc, coa_phase, -2, 2, -2 ); // -2Y2-2(inc, coa_phase)
-    
-    y_1 =   creal(MultSphHarmP) + creal(MultSphHarmM);
-    y_2 =   cimag(MultSphHarmM) - cimag(MultSphHarmP) ;
-    z1 = -  cimag(MultSphHarmM) - cimag(MultSphHarmP) ;
-    z2 =    creal(MultSphHarmM) - creal(MultSphHarmP);
-    
     for ( i = 0; i < (INT4)sigReVec->length; i++ )
     {
         REAL8 x1 = sigReVec->data[i];
         REAL8 x2 = sigImVec->data[i];
-#if outputh22
+    if (outputh22 ==1){
         // output h22
         hPlusTS->data->data[i]  = x1;
-        hCrossTS->data->data[i] = x2;
-#else
+        hCrossTS->data->data[i] = x2;   }
+    else{
         // output h_+-i*h_x=-2Y22 * h22 + -2Y2-2 * h2-2 while h2-2 = h22^(*)
         // h_+ = y1*x1 + y2*x2
         // h_x = z1*x1 + z2*x2
+
+        /* (2,2) and (2,-2) spherical harmonics needed in (h+,hx) */
+        REAL8 y_1, y_2, z1, z2;
+        /* Spin-weighted spherical harmonics */
+        COMPLEX16  MultSphHarmP;
+        COMPLEX16  MultSphHarmM;
+        /* TODO change to using XLALSimAddMode function to combine modes */
+        /* For now, calculate -2Y22 * h22 + -2Y2-2 * h2-2 directly (all terms complex) */
+        /* Compute spin-weighted spherical harmonics and generate waveform */
+        REAL8 coa_phase = 0.0;
+    
+        MultSphHarmP = XLALSpinWeightedSphericalHarmonic( inc, coa_phase, -2, 2, 2 ); // -2Y22(inc, coa_phase)
+        MultSphHarmM = XLALSpinWeightedSphericalHarmonic( inc, coa_phase, -2, 2, -2 ); // -2Y2-2(inc, coa_phase)
+
+        y_1 =   creal(MultSphHarmP) + creal(MultSphHarmM);
+        y_2 =   cimag(MultSphHarmM) - cimag(MultSphHarmP) ;
+        z1 = -  cimag(MultSphHarmM) - cimag(MultSphHarmP) ;
+        z2 =    creal(MultSphHarmM) - creal(MultSphHarmP);
+
         hPlusTS->data->data[i]  = y_1*x1 + y_2*x2;
-        hCrossTS->data->data[i] = z1*x1 + z2*x2;
-#endif
+        hCrossTS->data->data[i] = z1*x1 + z2*x2;    }
     }
     
     /* Point the output pointers to the relevant time series and return */
@@ -1753,12 +1737,12 @@ INT4 XLALSimIMREOBHybridRingdownWave(
         /* Eq. 16 */
         hLM *= hNQC;
 
-        double r,phi,prt,pphi,rdot,phidot;
+        double r,phi,rdot,phidot;//prt,pphi,
         r = rphivalues[0];
-        prt = rphivalues[2];
+        //prt = rphivalues[2];
         phi = rphivalues[1];
         phidot = drphivalues[3];
-        pphi = rphivalues[3];
+        //pphi = rphivalues[3];
         rdot = drphivalues[0];
 
         double x1,x2,x3;
@@ -1801,39 +1785,46 @@ double EOBPNflux(const double m1,const double m2,         // we assume m1>m2
 	  const double x1,const double x2,const double x3, // relative position
 	  const double v1,const double v2,const double v3, // relative velocity
 	  double *EOBPNfluxwoNQC)
-{
+{   
+    /* suppress the unused parameter warning */
+    (void)s1x;
+    (void)s1y;
+    (void)s1z;
+    (void)s2x;
+    (void)s2y;
+    (void)s2z;
    double tpt;
    if(EOBPNfluxwoNQC == 0) EOBPNfluxwoNQC = &tpt;
-   const double chi1x = s1x/m1/m1;
-   const double chi1y = s1y/m1/m1;
-   const double chi1z = s1z/m1/m1;
-   const double chi2x = s2x/m2/m2;
-   const double chi2y = s2y/m2/m2;
-   const double chi2z = s2z/m2/m2;
+   //const double chi1x = s1x/m1/m1;
+   //const double chi1y = s1y/m1/m1;
+   //const double chi1z = s1z/m1/m1;
+   //const double chi2x = s2x/m2/m2;
+   //const double chi2y = s2y/m2/m2;
+   //const double chi2z = s2z/m2/m2;
    const double m=m1+m2;
    const double eta=m1*m2/m/m;
 
    const double r=sqrt(x1*x1+x2*x2+x3*x3);
-   const double v=sqrt(v1*v1+v2*v2+v3*v3);
+   //const double v=sqrt(v1*v1+v2*v2+v3*v3);
    const double n1 = x1/r,n2 = x2/r,n3 = x3/r;
    const double rd = v1*n1+v2*n2+v3*n3;
-   const double dm = m1-m2;
+   //const double dm = m1-m2;
    const double ncv1=n2*v3-n3*v2;
    const double ncv2=n3*v1-n1*v3;
    const double ncv3=n1*v2-n2*v1;
 
-   const double chis1=(chi1x+chi2x)/2;
-   const double chis2=(chi1y+chi2y)/2;
-   const double chis3=(chi1z+chi2z)/2;
-   const double chia1=(chi1x-chi2x)/2;
-   const double chia2=(chi1y-chi2y)/2;
-   const double chia3=(chi1z-chi2z)/2;
-   const double chissqr = chis1*chis1+chis2*chis2+chis3*chis3;
-   const double chiasqr = chia1*chia1+chia2*chia2+chia3*chia3;
-   const double ndchis = chis1*n1+chis2*n2+chis3*n3;
-   const double ndchia = chia1*n1+chia2*n2+chia3*n3;
-   const double vdchis = chis1*v1+chis2*v2+chis3*v3;
-   const double vdchia = chia1*v1+chia2*v2+chia3*v3;
+   //const double chis1=(chi1x+chi2x)/2;
+   //const double chis2=(chi1y+chi2y)/2;
+   //const double chis3=(chi1z+chi2z)/2;
+   //const double chia1=(chi1x-chi2x)/2;
+   //const double chia2=(chi1y-chi2y)/2;
+   //const double chia3=(chi1z-chi2z)/2;
+   //const double chissqr = chis1*chis1+chis2*chis2+chis3*chis3;
+   //const double chiasqr = chia1*chia1+chia2*chia2+chia3*chia3;
+   //const double ndchis = chis1*n1+chis2*n2+chis3*n3;
+   //const double ndchia = chia1*n1+chia2*n2+chia3*n3;
+   //const double vdchis = chis1*v1+chis2*v2+chis3*v3;
+   //const double vdchia = chia1*v1+chia2*v2+chia3*v3;
 
    double flux;
 #if 0   
@@ -3570,8 +3561,8 @@ const REAL8 	spin1[3],	/**<< The spin of the 1st object; only needed for spin wa
 const REAL8 	spin2[3]	/**<< The spin of the 2nd object; only needed for spin waveforms */
 )
 {
-static const REAL8 root9ovr8minus1 = -0.057190958417936644;
-static const REAL8 root12		   = 3.4641016151377544;
+//static const REAL8 root9ovr8minus1 = -0.057190958417936644;
+//static const REAL8 root12		   = 3.4641016151377544;
 
 /* Constants used for the spinning EOB model */
 static const REAL8 p0 = 0.04826;
@@ -3584,7 +3575,7 @@ static const REAL8 s4 = -0.1229;
 static const REAL8 s5 = 0.4537;
 
 REAL8 totalMass;
-REAL8 eta, eta2, eta3;
+REAL8 eta, eta2;//, eta3
 REAL8 a1, a2, chiS, q;
 REAL8 tmpVar;
 
@@ -3592,7 +3583,7 @@ REAL8 tmpVar;
 totalMass = mass1 + mass2;
 eta = mass1 * mass2 / (totalMass*totalMass);
 eta2 = eta * eta;
-eta3 = eta2 * eta;
+//eta3 = eta2 * eta;
 
 
 	/* Final mass/spin comes from Eq. 8 of Tichy and Marronetti PRD78, 081501 
