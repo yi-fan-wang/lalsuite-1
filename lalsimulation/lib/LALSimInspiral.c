@@ -125,6 +125,7 @@ static const char *lalSimulationApproximantNames[] = {
     INITIALIZE_NAME(EOBNRv2HM_ROM),
     INITIALIZE_NAME(TEOBResum_ROM),
     INITIALIZE_NAME(SEOBNRv1),
+    INITIALIZE_NAME(SEOBNREv1),
     INITIALIZE_NAME(SEOBNRv2),
     INITIALIZE_NAME(SEOBNRv2_opt),
     INITIALIZE_NAME(SEOBNRv3),
@@ -848,6 +849,8 @@ int XLALSimInspiralChooseTDWaveform(
             break;
 
         case SEOBNRv1:
+        case SEOBNREv1:
+            ret = XLALSimSEOBNRE(hplus, hcross, phiRef, deltaT, m1, m2, f_min, eccentricity, distance, inclination, S1z, S2z, 'None');
         case SEOBNRv2_opt:
         case SEOBNRv2:
         case SEOBNRv4_opt:

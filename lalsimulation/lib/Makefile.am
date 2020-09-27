@@ -254,7 +254,8 @@ noinst_HEADERS = \
 	LALSimInspiralFDPrecAngles_internals.h \
 	LALSimNRSurRemnantUtils.h \
 	LALSimNRSur7dq4Remnant.h \
-	LALSimNRSur3dq8Remnant.h
+	LALSimNRSur3dq8Remnant.h \
+	LALSimIMRSEOBNREv1.h
 	$(END_OF_LIST)
 
 
@@ -359,7 +360,8 @@ liblalsimulation_la_SOURCES = \
 	LALSimInspiralFDPrecAngles.c \
 	LALSimNRSurRemnantUtils.c \
 	LALSimNRSur7dq4Remnant.c \
-	LALSimNRSur3dq8Remnant.c
+	LALSimNRSur3dq8Remnant.c \
+	LALSimIMRSEOBNREv1.c
 
 nodist_liblalsimulation_la_SOURCES = \
 	LALSimulationBuildInfoHeader.h \

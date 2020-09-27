@@ -323,6 +323,8 @@ typedef enum tagApproximant {
                          * @remarks Implemented in lalsimulation (time domain). */
    SEOBNRv1,		/**< Spin-aligned EOBNR model
                          * @remarks Implemented in lalsimulation (time domain). */
+   SEOBNREv1,   /**< Spin-aligned EOBNR model with eccentricity
+                         * @remarks Implemented in lalsimulation (time domain). */
    SEOBNRv2,		/**< Spin-aligned EOBNR model v2
                          * @remarks Implemented in lalsimulation (time domain). */
    SEOBNRv2_opt,	/**< Optimized Spin-aligned EOBNR model v2

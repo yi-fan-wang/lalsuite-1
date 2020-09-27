@@ -370,6 +370,23 @@ int XLALSimIMRSEOBNRv4HMROM_Modes(SphHarmFrequencySeries **hlm, REAL8 phiRef, RE
 int XLALSimIMRSEOBNRv4ROMNRTidalFrequencySequence(struct tagCOMPLEX16FrequencySeries **hptilde, struct tagCOMPLEX16FrequencySeries **hctilde, const REAL8Sequence *freqs, REAL8 phiRef, REAL8 fRef, REAL8 distance, REAL8 inclination, REAL8 m1_SI, REAL8 m2_SI, REAL8 chi1, REAL8 chi2, REAL8 Lambda1, REAL8 Lambda2, LALDict *LALparams, NRTidal_version_type NRTidal_version);
 int XLALSimIMRSEOBNRv4ROMNRTidal(struct tagCOMPLEX16FrequencySeries **hptilde, struct tagCOMPLEX16FrequencySeries **hctilde, REAL8 phiRef, REAL8 deltaF, REAL8 fLow, REAL8 fHigh, REAL8 fRef, REAL8 distance, REAL8 inclination, REAL8 m1_SI, REAL8 m2_SI, REAL8 chi1, REAL8 chi2, REAL8 Lambda1, REAL8 Lambda2, LALDict *LALparams, NRTidal_version_type NRTidal_version);
 
+/* in model LALSimIMRSEOBNREv1.c */
+int XLALSimSEOBNRE(
+                   REAL8TimeSeries **hplus,     /**<< OUTPUT, +-polarization waveform */
+                   REAL8TimeSeries **hcross,    /**<< OUTPUT, x-polarization waveform */
+                   const REAL8     phiC,        /**<< coalescence orbital phase (rad) */
+                   REAL8           deltaT,      /**<< sampling time step */
+                   const REAL8     m1SI,        /**<< mass-1 in SI unit */
+                   const REAL8     m2SI,        /**<< mass-2 in SI unit */
+                   const REAL8     fMin,        /**<< starting frequency (Hz) */
+                   const REAL8     e0,          /**<< eccentricity at starting GW frequency (Hz) */
+                   const REAL8     r,           /**<< distance in SI unit */
+                   const REAL8     inc,         /**<< inclination angle */
+                   const REAL8     spin1z,      /**<< z-component of spin-1, dimensionless */
+                   const REAL8     spin2z,       /**<< z-component of spin-2, dimensionless */
+                   const char       *jobtag
+);
+
 /* in module LALSimBHNSRemnantFits.c */
 REAL8 XLALbbh_final_mass_non_precessing_UIB2016(const REAL8 m1, const REAL8 m2, const REAL8 chi1, const REAL8 chi2);
 REAL8 XLALbbh_final_spin_non_precessing_UIB2016(const REAL8 m1, const REAL8 m2, const REAL8 chi1, const REAL8 chi2);
