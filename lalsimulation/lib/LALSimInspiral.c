@@ -847,11 +847,10 @@ int XLALSimInspiralChooseTDWaveform(
 							deltaT, m1, m2, f_min, f_ref, distance, incl, spin1x, spin1y, spin1z, spin2x, spin2y, spin2z,
 							phaseO, amplitudeO, lambda1, lambda2, quadparam1, quadparam2, LALparams);
             break;
-
-        case SEOBNRv1:
         case SEOBNREv1:
             ret = XLALSimSEOBNRE(hplus, hcross, phiRef, deltaT, m1, m2, f_min, eccentricity, distance, inclination, S1z, S2z);
             break;
+        case SEOBNRv1:
         case SEOBNRv2_opt:
         case SEOBNRv2:
         case SEOBNRv4_opt:
@@ -5455,6 +5454,7 @@ int XLALSimInspiralImplementedTDApproximants(
 		case IMRPhenomXPHM:
         case PhenSpinTaylorRD:
         case SEOBNRv1:
+        case SEOBNREv1:
         case SpinDominatedWf:
         case SEOBNRv2:
         case SEOBNRv2_opt:
